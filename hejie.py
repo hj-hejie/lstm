@@ -101,13 +101,15 @@ class HjLstm:
 			self.model.add(GlobalAveragePooling1D())
 			self.model.add(Dense(1, activation='sigmoid'))
 
-		elif self.nn_layer=='conv1':
+		elif self.nn_layer=='conv2':
                 	self.model=Sequential()
-                	self.model.add(Conv1D(32, 4, activation='relu', input_shape=(None, 1)))
+                	self.model.add(Conv1D(32, 5, activation='relu', input_shape=(None, 1)))
 			self.model.add(AveragePooling1D(strides=1))
-                        self.model.add(Conv1D(32, 4, activation='relu'))
+                        self.model.add(Conv1D(32, 5, activation='relu'))
 			self.model.add(AveragePooling1D(strides=1))
-                        self.model.add(Conv1D(32, 4, activation='relu'))
+                        self.model.add(Conv1D(32, 5, activation='relu'))
+                        self.model.add(AveragePooling1D(strides=1))
+                        self.model.add(Conv1D(32, 5, activation='relu'))
 			self.model.add(GlobalAveragePooling1D())
                         self.model.add(Dense(1, activation='sigmoid'))
 
@@ -127,7 +129,7 @@ class HjLstm:
 
 		if type(self.model.get_layer(index=1)) is Dense:
 			self.train_x=np.reshape(self.train_x, self.train_x.shape[:-1])
-		history=self.model.fit(self.train_x, self.train_y, batch_size=50, epochs=100, validation_split=0.3)
+		history=self.model.fit(self.train_x, self.train_y, batch_size=50, epochs=300, validation_split=0.3)
 
 		self.model.save_weights(self.weights_file)
 
@@ -214,7 +216,7 @@ if __name__ == '__main__':
 	#start='2018-02-11'
 	#end='2018-02-23'
 	#data_file=stock_id+'.csv'
-	pre_day=20
+	pre_day=50
 	dict_day=7
 	
 	'''
@@ -252,7 +254,7 @@ if __name__ == '__main__':
 	'''
 		
 	#nn=HjLstm(pre_day, dict_day, stock_id, 'dnn_10_100_10_1')
-	nn=HjLstm(pre_day, dict_day, stock_id, 'conv1')
+	nn=HjLstm(pre_day, dict_day, stock_id, 'conv2')
 	#nn.load_file()
 	nn.train_model()
         #nn.plot()
