@@ -23,13 +23,13 @@ logger = logging.getLogger(__name__)
 
 class HjLstm: 
 
-	def __init__(self, stock_id, pre_day=32, dict_day=1, nn_layer='lstm', dims=22):
+	def __init__(self, stock_id, pre_day=1, dict_day=1, nn_layer='lstm', dims=12):
 		self.stock_id=stock_id
 		self.nn_layer=nn_layer
 		self.dims=dims
 		self.pre_day=pre_day
 		self.dict_day=dict_day
-		self.split=0.9
+		self.split=0.8
 		self.weights_file=self.stock_id+self.nn_layer+'_'+str(self.pre_day)+'_'+str(self.dict_day)+'.h5'
 		self.data_file=self.stock_id+'.csv'
 		self.bins=np.linspace(-10, 10, self.dims-1)
@@ -61,8 +61,8 @@ class HjLstm:
 		else:
 			self.data=ts.get_hist_data(self.stock_id).sort_index(axis=0, ascending=True)
 			self.data.to_csv(self.data_file)
-		#self.data_array=self.data.as_matrix(['close', 'high', 'low', 'open', 'price_change'])
-		self.data_array=self.data.as_matrix(['p_change'])
+		self.data_array=self.data.as_matrix(['close', 'high', 'low', 'open'])
+		#self.data_array=self.data.as_matrix()
 		self.data_price_change=self.data['p_change']
 		self.data_price_change_digitize=np.digitize(self.data_price_change, self.bins)
 		self.data_price_change_1hot=self.eye[self.data_price_change_digitize]
@@ -84,6 +84,7 @@ class HjLstm:
                 x=reshaped_data[:, :self.pre_day]
                 #x=reshaped_data_price_change[:, :self.pre_day]
 		y=reshaped_data_price_change[:,-1]
+                #y=reshaped_data[:,-1][:,0]
 		split = int(reshaped_data.shape[0] * self.split)
 		self.train_x = x[:split]
 		self.test_x = x[split:]
@@ -93,15 +94,16 @@ class HjLstm:
 	def build_model(self):
 
 		self.model=Sequential()
+		#self.model.add(LSTM(32, input_shape=(self.pre_day, self.data_array.shape[1])))
 		self.model.add(LSTM(32, input_shape=(self.pre_day, self.data_array.shape[1])))
-		#self.model.add(LSTM(50, input_shape=(self.pre_day, self.data_array.shape[1]), return_sequences=True))
 		#self.model.add(LSTM(32, batch_input_shape=(1, self.pre_day, self.data_array.shape[1]), stateful=True))
-		#self.model.add(LSTM(16))
+		#self.model.add(LSTM(64, return_sequences=True))
+		#self.model.add(LSTM(32))
                 self.model.add(Dense(self.dims, activation='softmax'))
-                #self.model.add(Dense(self.dims, activation='sigmoid'))
+                #self.model.add(Dense(1, activation='linear'))
 
 		#self.model.compile(loss='mse', optimizer='rmsprop')
-		#self.model.compile(loss='msle', optimizer='nadam')
+		#self.model.compile(loss='msle', optimizer='nadam', metrics=['accuracy'])
 		#self.model.compile(loss='binary_crossentropy', optimizer='nadam', metrics=['accuracy'])
 		self.model.compile(loss='categorical_crossentropy', optimizer='nadam', metrics=['accuracy'])
 		#self.model.compile(loss='sparse_categorical_crossentropy', optimizer='nadam', metrics=['accuracy'])
@@ -127,7 +129,7 @@ class HjLstm:
 			self.build_model()
 
 		#history=self.model.fit(self.train_all, self.train_y_close, batch_size=50, epochs=1000, validation_split=0.3, callbacks=[EarlyStopping('val_loss')])
-		history=self.model.fit(self.train_x, self.train_y, batch_size=len(self.train_x), epochs=9000, shuffle=False, validation_data=(self.test_x, self.test_y))
+		history=self.model.fit(self.train_x, self.train_y, batch_size=100, epochs=50, validation_data=(self.test_x, self.test_y))
 		#history=self.model.fit(self.train_x, self.train_y, batch_size=1, epochs=9000, shuffle=False, validation_data=(self.test_x, self.test_y))
 		#history=self.model.fit(np.reshape(self.train_all, (len(self.train_all), -1, 1)), self.train_y_close, batch_size=50, epochs=10, validation_split=0.3)
 
@@ -233,8 +235,8 @@ if __name__ == '__main__':
 	#start='2018-02-11'
 	#end='2018-02-23'
 	#data_file=stock_id+'.csv'
-	pre_day=8
-	dict_day=1
+	#pre_day=8
+	#dict_day=1
 	
 	'''
 	data=ts.get_hist_data(stock_id, start=start, end=end)
@@ -274,9 +276,9 @@ if __name__ == '__main__':
 	nn=HjLstm(stock_id)
 	#nn.load_file()
 	nn.load_data(False)
-	nn.train_model()
+	#nn.train_model()
 	#nn.predict()
-	#advise(nn)
+	advise(nn)
         #nn.plot()
 	#nn.load_data()
 	#print nn.predict(nn.data.values[-pre_day:]).shape

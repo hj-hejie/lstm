@@ -140,7 +140,7 @@ class HjLstm:
                         self.model.add(Dense(1, activation='sigmoid'))
 
 		#self.model.compile(loss='mse', optimizer='rmsprop')
-		self.model.compile(loss='msle', optimizer='nadam')
+		self.model.compile(loss='msle', optimizer='nadam', metrics=['accuracy'])
 		#self.model.compile(loss='binary_crossentropy', optimizer='nadam')
 
 		if(os.path.exists(self.weights_file)):
@@ -154,7 +154,7 @@ class HjLstm:
 			self.build_model()
 
 		#history=self.model.fit(self.train_all, self.train_y_close, batch_size=50, epochs=1000, validation_split=0.3, callbacks=[EarlyStopping('val_loss')])
-		history=self.model.fit(self.train_all, self.train_y_close, batch_size=50, epochs=250)
+		history=self.model.fit(self.train_all, self.train_y_close, batch_size=50, epochs=250, validation_split=0.2)
 		#history=self.model.fit(np.reshape(self.train_all, (len(self.train_all), -1, 1)), self.train_y_close, batch_size=50, epochs=10, validation_split=0.3)
 
 		self.model.save_weights(self.weights_file)
@@ -319,9 +319,9 @@ if __name__ == '__main__':
 	#nn=HjLstm(pre_day, dict_day, stock_id, 'dnn_10_100_10_1')
 	nn=HjLstm(pre_day, dict_day, stock_id, 'dnn2')
 	#nn.load_file()
-	#nn.load_data(False)
-	#nn.train_model()
-	advise(nn)
+	nn.load_data(False)
+	nn.train_model()
+	#advise(nn)
         #nn.plot()
 	#nn.load_data()
 	#print nn.predict(nn.data.values[-pre_day:]).shape
