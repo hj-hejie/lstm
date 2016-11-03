@@ -95,8 +95,8 @@ class HjLstm:
 
 		self.model=Sequential()
 		#self.model.add(LSTM(32, input_shape=(self.pre_day, self.data_array.shape[1])))
-		self.model.add(LSTM(32, input_shape=(self.pre_day, self.data_array.shape[1])))
-		#self.model.add(LSTM(32, batch_input_shape=(1, self.pre_day, self.data_array.shape[1]), stateful=True))
+		#self.model.add(LSTM(32, input_shape=(self.pre_day, self.data_array.shape[1])))
+		self.model.add(LSTM(32, batch_input_shape=(1, self.pre_day, self.data_array.shape[1]), stateful=True))
 		#self.model.add(LSTM(64, return_sequences=True))
 		#self.model.add(LSTM(32))
                 self.model.add(Dense(self.dims, activation='softmax'))
@@ -129,8 +129,8 @@ class HjLstm:
 			self.build_model()
 
 		#history=self.model.fit(self.train_all, self.train_y_close, batch_size=50, epochs=1000, validation_split=0.3, callbacks=[EarlyStopping('val_loss')])
-		history=self.model.fit(self.train_x, self.train_y, batch_size=100, epochs=50, validation_data=(self.test_x, self.test_y))
-		#history=self.model.fit(self.train_x, self.train_y, batch_size=1, epochs=9000, shuffle=False, validation_data=(self.test_x, self.test_y))
+		#history=self.model.fit(self.train_x, self.train_y, batch_size=100, epochs=50, validation_data=(self.test_x, self.test_y))
+		history=self.model.fit(self.train_x, self.train_y, batch_size=1, epochs=50, shuffle=False, validation_data=(self.test_x, self.test_y))
 		#history=self.model.fit(np.reshape(self.train_all, (len(self.train_all), -1, 1)), self.train_y_close, batch_size=50, epochs=10, validation_split=0.3)
 
 		self.model.save_weights(self.weights_file)
@@ -157,12 +157,6 @@ class HjLstm:
 			self.predict_y=self.model.predict_classes(self.train_x)
 		else:
 			predict_y=self.model.predict_classes(x.reshape(1, x.shape[0], x.shape[1]))[0]
-			h1=self.model.predict(x.reshape(1, x.shape[0], x.shape[1]))[0]
-			h2=self.model.predict(self.train_x)
-			h3=self.model.predict_classes(self.train_x)
-			h4=self.model.predict(self.test_x)
-			h5=self.model.predict_classes(self.test_x)
-			pdb.set_trace()
 			return self.bins[predict_y-1] if predict_y>0 else None, self.bins[predict_y]
 
 	def plot(self):
@@ -226,8 +220,8 @@ def advise(lstm):
 
 if __name__ == '__main__':
 	#stock_id='600848'
-	stock_id='600354'
-	#stock_id='000001'
+	#stock_id='600354'
+	stock_id='000001'
 	#stock_id='hs300'
 	#start='2011-01-01'
 	#start='1990-01-01'
@@ -276,7 +270,7 @@ if __name__ == '__main__':
 	nn=HjLstm(stock_id)
 	#nn.load_file()
 	nn.load_data(False)
-	#nn.train_model()
+	nn.train_model()
 	#nn.predict()
 	advise(nn)
         #nn.plot()
