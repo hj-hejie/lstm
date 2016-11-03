@@ -220,8 +220,8 @@ def advise(lstm):
 
 if __name__ == '__main__':
 	#stock_id='600848'
-	#stock_id='600354'
-	stock_id='000001'
+	stock_id='600354'
+	#stock_id='000001'
 	#stock_id='hs300'
 	#start='2011-01-01'
 	#start='1990-01-01'
@@ -270,7 +270,7 @@ if __name__ == '__main__':
 	nn=HjLstm(stock_id)
 	#nn.load_file()
 	nn.load_data(False)
-	nn.train_model()
+	#nn.train_model()
 	#nn.predict()
 	advise(nn)
         #nn.plot()
