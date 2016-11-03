@@ -103,13 +103,15 @@ class HjLstm:
 
 		elif self.nn_layer=='conv2':
                 	self.model=Sequential()
-                	self.model.add(Conv1D(32, 5, activation='relu', input_shape=(None, 1)))
+                	self.model.add(Conv1D(32, 6, activation='relu', input_shape=(None, 1)))
 			self.model.add(AveragePooling1D(strides=1))
-                        self.model.add(Conv1D(32, 5, activation='relu'))
+                        self.model.add(Conv1D(32, 6, activation='relu'))
 			self.model.add(AveragePooling1D(strides=1))
-                        self.model.add(Conv1D(32, 5, activation='relu'))
+                        self.model.add(Conv1D(32, 6, activation='relu'))
                         self.model.add(AveragePooling1D(strides=1))
-                        self.model.add(Conv1D(32, 5, activation='relu'))
+                        self.model.add(Conv1D(32, 6, activation='relu'))
+                        self.model.add(AveragePooling1D(strides=1))
+                        self.model.add(Conv1D(32, 6, activation='relu'))
 			self.model.add(GlobalAveragePooling1D())
                         self.model.add(Dense(1, activation='sigmoid'))
 
