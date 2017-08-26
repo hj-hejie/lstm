@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -8,7 +9,7 @@ from keras.layers import LSTM, Dense, Activation
 def load_data(sequence_length=10, split=0.8):
     #data=ts.get_hist_data('600848', start='2011-01-01', end='2018-01-18')
     #data.to_pickle('600848.pkl')
-    data=pd.read_pickle('600848.pkl')
+    data=pd.read_pickle(data_file)
     data=data['close']
     data=np.reshape(data, (len(data),1))
     data_all = np.array(data).astype(float)
@@ -31,24 +32,34 @@ def load_data(sequence_length=10, split=0.8):
 def build_model():
     model = Sequential()
     model.add(LSTM(input_dim=1, output_dim=50, return_sequences=True))
-    model.add(LSTM(100, return_sequences=False))
+    model.add(LSTM(100, return_sequences=True))
+    #model.add(LSTM(50))
     model.add(Dense(output_dim=1))
     model.add(Activation('linear'))
     model.compile(loss='mse', optimizer='rmsprop')
-    model.load_weights('hjmodel.h5')
+    if(os.path.exists(weights_file)):
+            model.load_weights(weights_file)
     return model
 
 
 def train_model(model, train_x, train_y):
     model.fit(train_x, train_y, batch_size=512, nb_epoch=100, validation_split=0.1)
-    model.save_weights('hjmodel.h5')
+    model.save_weights(weights_file)
     return model
 
-def superPredict(x):
+def superPredict(model, x, length):
     ys=[]
-    y=model.predict(x)
-    ys.append(y)
+    for i in range(length):
+        y=model.predict(x)
+        ys.append(y[0])
+        x=np.array([np.append(x[0][1:],y[0])])
+        x=np.reshape(x, (x.shape[0], x.shape[1],1))
+    return ys;
 
+data_file='600848.pkl'
+weights_file='600848_50_100.h5'
+#weights_file='600848_50_100_200.h5'
+span=0
 
 if __name__ == '__main__':
     train_x, train_y, test_x, test_y, scaler = load_data()
@@ -56,11 +67,14 @@ if __name__ == '__main__':
     test_x = np.reshape(test_x, (test_x.shape[0], test_x.shape[1], 1))
     model=build_model()
     #model=train_model(model, train_x, train_y)
-    predict_y=model.predict(test_x)
+    predict_y=model.predict(test_x[span:])
+    predict_y2=superPredict(model, test_x[span:span+1], 50);
     predict_y = scaler.inverse_transform(predict_y)
+    predict_y2 = scaler.inverse_transform(predict_y2)
     test_y = scaler.inverse_transform(test_y)
     fig2 = plt.figure(2)
     plt.plot(predict_y, 'g:')
-    plt.plot(test_y, 'r-')
+    plt.plot(predict_y2, 'b:')
+    plt.plot(test_y[span:], 'r-')
     plt.show()
 
