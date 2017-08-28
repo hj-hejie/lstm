@@ -31,10 +31,9 @@ def load_data(sequence_length=10, split=0.8):
 
 def build_model():
     model = Sequential()
-    model.add(LSTM(input_dim=1, output_dim=50, return_sequences=True))
-    model.add(LSTM(100, return_sequences=True))
-    #model.add(LSTM(50))
-    model.add(Dense(output_dim=1))
+    model.add(LSTM(50, input_dim=1, return_sequences=True))
+    model.add(LSTM(100))
+    model.add(Dense(1))
     model.add(Activation('linear'))
     model.compile(loss='mse', optimizer='rmsprop')
     if(os.path.exists(weights_file)):
@@ -43,7 +42,7 @@ def build_model():
 
 
 def train_model(model, train_x, train_y):
-    model.fit(train_x, train_y, batch_size=512, nb_epoch=100, validation_split=0.1)
+    model.fit(train_x, train_y, batch_size=100, epochs=100, validation_split=0.1)
     model.save_weights(weights_file)
     return model
 
@@ -59,7 +58,7 @@ def superPredict(model, x, length):
 data_file='600848.pkl'
 weights_file='600848_50_100.h5'
 #weights_file='600848_50_100_200.h5'
-span=0
+span=12
 
 if __name__ == '__main__':
     train_x, train_y, test_x, test_y, scaler = load_data()
@@ -68,7 +67,7 @@ if __name__ == '__main__':
     model=build_model()
     #model=train_model(model, train_x, train_y)
     predict_y=model.predict(test_x[span:])
-    predict_y2=superPredict(model, test_x[span:span+1], 50);
+    predict_y2=superPredict(model, test_x[span:span+1], 100);
     predict_y = scaler.inverse_transform(predict_y)
     predict_y2 = scaler.inverse_transform(predict_y2)
     test_y = scaler.inverse_transform(test_y)
