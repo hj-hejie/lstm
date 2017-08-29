@@ -1,3 +1,4 @@
+import sys
 import os
 import threading
 import pandas as pd
@@ -10,7 +11,7 @@ from keras.layers import LSTM, Dense, Activation
 class HjLstm: 
 
 	def __init__(self, pre_day, dict_day, stock_id, data):
-                self.data=data
+		self.data=data
 		self.stock_id=stock_id
 		self.nn_layer='_50_100'
 		self.pre_day=pre_day
@@ -61,7 +62,7 @@ class HjLstm:
 		self.predict_y=self.model.predict(self.test_x)
 		
 	def plot(self):
-                self.do_predict()
+		self.do_predict()
 		predict_y_inverse = self.scaler.inverse_transform(self.predict_y)
 		test_y_inverse = self.scaler.inverse_transform(self.test_y)
 		plt.figure(1)
@@ -69,9 +70,9 @@ class HjLstm:
 		plt.plot(test_y_inverse, 'r-')
 		plt.show()
 
-        def predict(self, test_x):
-                predict_y=self.model.predict(test_x)
-                return self.scaler.inverse_transform(predict_y)
+	def predict(self, test_x):
+		predict_y=self.model.predict(test_x)
+		return self.scaler.inverse_transform(predict_y)
 
 
 def do_train(lstm):
@@ -80,38 +81,47 @@ def do_train(lstm):
 def train(lstms):
 	for lstm in lstms:
 		#threading.Thread(target=do_train, args=(lstm,)).start()
-                do_train(lstm)
+		do_train(lstm)
 
 def predict(lstms, test_x):
-    predict_ys=np.arrays([])
-    for lstm in lstms:
-        predict_y=lstm.predict(test_x)
-        predict_y=np.append(predict_ys, predict_y);
+	predict_ys=np.array([])
+	for lstm in lstms:
+		predict_y=lstm.predict(test_x)
+		predict_ys=np.append(predict_ys, predict_y);
+	return np.reshape(predict_ys, (len(predict_ys), 1))
 
-def plot(data, lstms, test_x):
-    predict_y=predict(lstms, test_x)
-    plt.figure(1)
-    plt.plot(np.append(test_x, predict_y))
+def plot(lstms, data):
+	data=data['close']
+	data=np.reshape(data, (len(data),1))
+	split = int(data.shape[0] * 0.8)
+	test_data=data[split:]
+	test_x=test_data[0:10]
+	test_x=np.array([test_x])
+	predict_y=predict(lstms, test_x)
+	plt.figure(1)
+	predict_xy=np.append(test_x, predict_y)
+	plt.plot(np.reshape(test_data, len(test_data), 1), 'r-')
+	plt.plot(np.reshape(predict_xy, len(predict_xy), 1), 'g:')
+	plt.show()
 
-        		
 if __name__ == '__main__':
-        stock_id='600848'
-        data_file=stock_id+'.pkl'
+	stock_id='600848'
+	data_file=stock_id+'.pkl'
+	pre_day=10
 
-        #data=ts.get_hist_data('600848', start='2011-01-01', end='2018-01-18')
-        #data.to_pickle('600848.pkl')
+	#data=ts.get_hist_data('600848', start='2011-01-01', end='2018-01-18')
+	#data.to_pickle('600848.pkl')
 	data=pd.read_pickle(data_file)
 
-        #lstm=HjLstm(10, 1)
-	lstm10_2=HjLstm(10, 2, stock_id, data)
-	lstm10_3=HjLstm(10, 3, stock_id, data)
-	lstm10_4=HjLstm(10, 4, stock_id, data)
-	lstm10_5=HjLstm(10, 5, stock_id, data)
-	lstm10_6=HjLstm(10, 6, stock_id, data)
-	lstm10_7=HjLstm(10, 7, stock_id, data)
-
-	lstms=[lstm10_2,lstm10_3,lstm10_4,lstm10_5,lstm10_6,lstm10_7]
-
-        #train(lstms)
+	if len(sys.argv)>1:
+		index=sys.argv[1]
+		lstm=HjLstm(pre_day, int(index), stock_id, data)
+		lstm.train_model()
+		lstm.plot()
+	else:
+		lstms=[HjLstm(pre_day, i, stock_id, data) for i in range(1,8)]
+		#train(lstms)
+		plot(lstms, data)
+		
 
 
