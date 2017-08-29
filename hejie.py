@@ -17,31 +17,27 @@ class HjLstm:
 		self.pre_day=pre_day
 		self.dict_day=dict_day
 		self.split=0.8
-		#self.weights_file='600848_50_100.h5'
 		self.weights_file=self.stock_id+self.nn_layer+'_'+str(self.pre_day)+'_'+str(self.dict_day)+'.h5'
+		self.scaler = MinMaxScaler()
 		self.build_model()
 		self.load_data()
-		
-		
+
 	def load_data(self):
-		sequence_length=self.pre_day+self.dict_day
-		data=self.data['close']
+		seq_length=self.pre_day+self.dict_day
+		data=self.data
 		data=np.reshape(data, (len(data),1))
-		data_all = np.array(data).astype(float)
-		self.scaler = MinMaxScaler()
-		data_all = self.scaler.fit_transform(data_all)
-		data = []
-		for i in range(len(data_all) - sequence_length):
-			data.append(data_all[i: i + sequence_length])
-		reshaped_data = np.array(data).astype('float64')
+		data= self.scaler.fit_transform(data)
+		reshaped_data = []
+		for i in range(len(data) - seq_length):
+			reshaped_data.append(data[i: i + seq_length])
+		reshaped_data = np.array(reshaped_data)
 		x = reshaped_data[:, :-self.dict_day]
 		y = reshaped_data[:, -1]
-		split_boundary = int(reshaped_data.shape[0] * self.split)
-		self.train_x = x[: split_boundary]
-		self.test_x = x[split_boundary:]
-		self.train_y = y[: split_boundary]
-		self.test_y = y[split_boundary:]
-
+		split = int(reshaped_data.shape[0] * self.split)
+		self.train_x = x[: split]
+		self.test_x = x[split:]
+		self.train_y = y[: split]
+		self.test_y = y[split:]
 
 	def build_model(self):
 		self.model = Sequential()
@@ -53,14 +49,13 @@ class HjLstm:
 		if(os.path.exists(self.weights_file)):
 				self.model.load_weights(self.weights_file)
 
-
 	def train_model(self):
 		self.model.fit(self.train_x, self.train_y, batch_size=512, epochs=1, validation_split=0.1)
 		self.model.save_weights(self.weights_file)
-		
+
 	def do_predict(self):
 		self.predict_y=self.model.predict(self.test_x)
-		
+
 	def plot(self):
 		self.do_predict()
 		predict_y_inverse = self.scaler.inverse_transform(self.predict_y)
@@ -73,7 +68,6 @@ class HjLstm:
 	def predict(self, test_x):
 		predict_y=self.model.predict(test_x)
 		return self.scaler.inverse_transform(predict_y)
-
 
 def do_train(lstm):
 	lstm.train_model()
@@ -91,17 +85,15 @@ def predict(lstms, test_x):
 	return np.reshape(predict_ys, (len(predict_ys), 1))
 
 def plot(lstms, data):
-	data=data['close']
-	data=np.reshape(data, (len(data),1))
-	split = int(data.shape[0] * 0.8)
+	split = int(len(data) * 0.8)
 	test_data=data[split:]
 	test_x=test_data[0:10]
-	test_x=np.array([test_x])
+	test_x=np.reshape(test_x, (1, len(test_x), 1))
 	predict_y=predict(lstms, test_x)
-	plt.figure(1)
 	predict_xy=np.append(test_x, predict_y)
-	plt.plot(np.reshape(test_data, len(test_data), 1), 'r-')
-	plt.plot(np.reshape(predict_xy, len(predict_xy), 1), 'g:')
+	plt.figure(1)
+	plt.plot(np.reshape(test_data, (len(test_data), 1)), 'r-')
+	plt.plot(np.reshape(predict_xy, (len(predict_xy), 1)), 'g:')
 	plt.show()
 
 if __name__ == '__main__':
@@ -111,7 +103,7 @@ if __name__ == '__main__':
 
 	#data=ts.get_hist_data('600848', start='2011-01-01', end='2018-01-18')
 	#data.to_pickle('600848.pkl')
-	data=pd.read_pickle(data_file)
+	data=pd.read_pickle(data_file)['close']
 
 	if len(sys.argv)>1:
 		index=sys.argv[1]
