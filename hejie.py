@@ -50,7 +50,7 @@ class HjLstm:
 				self.model.load_weights(self.weights_file)
 
 	def train_model(self):
-		self.model.fit(self.train_x, self.train_y, batch_size=512, epochs=1, validation_split=0.1)
+		self.model.fit(self.train_x, self.train_y, batch_size=512, epochs=10, validation_split=0.1)
 		self.model.save_weights(self.weights_file)
 
 	def do_predict(self):
@@ -109,7 +109,7 @@ if __name__ == '__main__':
 		index=sys.argv[1]
 		lstm=HjLstm(pre_day, int(index), stock_id, data)
 		lstm.train_model()
-		lstm.plot()
+		#lstm.plot()
 	else:
 		lstms=[HjLstm(pre_day, i, stock_id, data) for i in range(1,8)]
 		#train(lstms)
