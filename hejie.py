@@ -1,9 +1,12 @@
+#!/usr/bin/python
+
 import sys
 import os
 import threading
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import tushare as ts
 from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
 from keras.layers import LSTM, Dense, Activation
@@ -98,21 +101,23 @@ def plot(lstms, data):
 
 if __name__ == '__main__':
 	stock_id='600848'
-	start='2011-01-01'
-	end='2018-01-18' #count=571
+	#start='2011-01-01'
+	start='1990-01-01'
+	end='2018-01-18'
 	data_file=stock_id+'_'+start+'_'+end+'.pkl'
 	pre_day=10
 
-	#data=ts.get_hist_data('600848', start=start, end=end)
-	#data.to_pickle('600848.pkl')
+	data=ts.get_hist_data(stock_id, start=start, end=end)
+	data.to_pickle(data_file)
 	data=pd.read_pickle(data_file)['close']
-	#print np.array(data).shape
-	
+	print np.array(data).shape
+	'''
 	if len(sys.argv)>1:
 		index=sys.argv[1]
 		lstm=HjLstm(pre_day, int(index), stock_id, data)
 		lstm.train_model()
 		lstm.plot()
+	'''
 	'''
 	else:
 		lstms=[HjLstm(pre_day, i, stock_id, data) for i in range(1,8)]
