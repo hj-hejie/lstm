@@ -50,7 +50,7 @@ class HjLstm:
 				self.model.load_weights(self.weights_file)
 
 	def train_model(self):
-		self.model.fit(self.train_x, self.train_y, batch_size=512, epochs=10, validation_split=0.1)
+		self.model.fit(self.train_x, self.train_y, batch_size=50, epochs=10)
 		self.model.save_weights(self.weights_file)
 
 	def do_predict(self):
@@ -98,22 +98,25 @@ def plot(lstms, data):
 
 if __name__ == '__main__':
 	stock_id='600848'
-	data_file=stock_id+'.pkl'
+	start='2011-01-01'
+	end='2018-01-18' #count=571
+	data_file=stock_id+'_'+start+'_'+end+'.pkl'
 	pre_day=10
 
-	#data=ts.get_hist_data('600848', start='2011-01-01', end='2018-01-18')
+	#data=ts.get_hist_data('600848', start=start, end=end)
 	#data.to_pickle('600848.pkl')
 	data=pd.read_pickle(data_file)['close']
-
+	#print np.array(data).shape
+	
 	if len(sys.argv)>1:
 		index=sys.argv[1]
 		lstm=HjLstm(pre_day, int(index), stock_id, data)
 		lstm.train_model()
-		#lstm.plot()
+		lstm.plot()
+	'''
 	else:
 		lstms=[HjLstm(pre_day, i, stock_id, data) for i in range(1,8)]
-		#train(lstms)
+		train(lstms)
 		plot(lstms, data)
-		
-
+	'''
 
