@@ -10,6 +10,7 @@ import tushare as ts
 from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
 from keras.layers import LSTM, Dense, Activation
+from keras.utils import plot_model
 
 class HjLstm: 
 
@@ -51,10 +52,15 @@ class HjLstm:
 		self.model.compile(loss='mse', optimizer='rmsprop')
 		if(os.path.exists(self.weights_file)):
 				self.model.load_weights(self.weights_file)
+		plot_model(self.model)
 
 	def train_model(self):
-		self.model.fit(self.train_x, self.train_y, batch_size=20, epochs=20)
+		history=self.model.fit(self.train_x, self.train_y, batch_size=20, epochs=2, validation_split=0.3)
 		self.model.save_weights(self.weights_file)
+		
+		plt.plot(history.history['loss'])
+		plt.plot(history.history['val_loss'])
+		plt.show()
 
 	def do_predict(self):
 		self.predict_y=self.model.predict(self.test_x)
@@ -115,8 +121,8 @@ if __name__ == '__main__':
 	if len(sys.argv)>1:
 		index=sys.argv[1]
 		lstm=HjLstm(pre_day, int(index), stock_id, data)
-		#lstm.train_model()
-		lstm.plot()
+		lstm.train_model()
+		#lstm.plot()
 	
 	'''
 	else:
