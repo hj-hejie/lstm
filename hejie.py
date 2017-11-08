@@ -53,14 +53,14 @@ class HjLstm:
 		self.model.compile(loss='mse', optimizer='rmsprop')
 		if(os.path.exists(self.weights_file)):
 				self.model.load_weights(self.weights_file)
-		plot_model(self.model)
+		#plot_model(self.model)
 
-	def train_model(self):
+	def train_model(self, d):
 		history=self.model.fit(self.train_x, self.train_y, batch_size=20, epochs=2, validation_split=0.3)
 		self.model.save_weights(self.weights_file)
 		
-		plt.plot(history.history['loss'])
-		plt.plot(history.history['val_loss'])
+		d[self.nn_layer+'loss']=history.history['loss']
+		d[self.nn_layer+'val_loss']=history.history['val_loss']
 		#plt.show()
 
 	def do_predict(self):
@@ -70,7 +70,7 @@ class HjLstm:
 		self.do_predict()
 		predict_y_inverse = self.scaler.inverse_transform(self.predict_y)
 		test_y_inverse = self.scaler.inverse_transform(self.test_y)
-		plt.figure(1)
+		#plt.figure(1)
 		plt.plot(predict_y_inverse, 'g:')
 		plt.plot(test_y_inverse, 'r-')
 		plt.show()
@@ -106,10 +106,6 @@ def plot(lstms, data):
 	plt.plot(np.reshape(predict_xy, (len(predict_xy), 1)), 'g:')
 	plt.show()
 	
-def target(){
-
-}
-
 if __name__ == '__main__':
 	stock_id='600848'
 	#start='2011-01-01'
@@ -123,11 +119,14 @@ if __name__ == '__main__':
 	#data.to_pickle(data_file)
 	data=pd.read_pickle(data_file)['close']
 	#print np.array(data).shape
-	hj1=HjLstm(pre_day, dict_day, stock_id, data)
-	hj2=HjLstm(pre_day, dict_day, stock_id, data)
+
+	mgr=mp.Manager()
+	d=mgr.dict()
+	hj1=HjLstm(pre_day, dict_day, stock_id, data, 'hj1')
+	hj2=HjLstm(pre_day, dict_day, stock_id, data, 'hj2')
 	
-	hj1_p=mp.Process(target=hj1.train_model)
-	hj2_p=mp.Process(target=hj2.train_model)
+	hj1_p=mp.Process(target=hj1.train_model, args=(d,))
+	hj2_p=mp.Process(target=hj2.train_model, args=(d,))
 	
 	hj1_p.start()
 	hj2_p.start()
@@ -135,6 +134,11 @@ if __name__ == '__main__':
 	hj1_p.join()
 	hj2_p.join()
 	
+	print d
+
+	for i,v in d.items():
+		plt.plot(v, label=i)
+
 	plt.show()
 	
 	'''
