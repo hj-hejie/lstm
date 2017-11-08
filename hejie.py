@@ -6,6 +6,7 @@ import threading
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import multiprocessing as mp
 import tushare as ts
 from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
@@ -14,10 +15,10 @@ from keras.utils import plot_model
 
 class HjLstm: 
 
-	def __init__(self, pre_day, dict_day, stock_id, data):
+	def __init__(self, pre_day, dict_day, stock_id, data, nn_layer='_50_100'):
 		self.data=data
 		self.stock_id=stock_id
-		self.nn_layer='_50_100'
+		self.nn_layer=nn_layer
 		self.pre_day=pre_day
 		self.dict_day=dict_day
 		self.split=0.8
@@ -60,7 +61,7 @@ class HjLstm:
 		
 		plt.plot(history.history['loss'])
 		plt.plot(history.history['val_loss'])
-		plt.show()
+		#plt.show()
 
 	def do_predict(self):
 		self.predict_y=self.model.predict(self.test_x)
@@ -104,6 +105,10 @@ def plot(lstms, data):
 	plt.plot(np.reshape(test_data, (len(test_data), 1)), 'r-')
 	plt.plot(np.reshape(predict_xy, (len(predict_xy), 1)), 'g:')
 	plt.show()
+	
+def target(){
+
+}
 
 if __name__ == '__main__':
 	stock_id='600848'
@@ -112,18 +117,33 @@ if __name__ == '__main__':
 	end='2018-01-18'
 	data_file=stock_id+'_'+start+'_'+end+'.pkl'
 	pre_day=20
+	dict_day=7
 
 	#data=ts.get_hist_data(stock_id, start=start, end=end)
 	#data.to_pickle(data_file)
 	data=pd.read_pickle(data_file)['close']
 	#print np.array(data).shape
+	hj1=HjLstm(pre_day, dict_day, stock_id, data)
+	hj2=HjLstm(pre_day, dict_day, stock_id, data)
 	
+	hj1_p=mp.Process(target=hj1.train_model)
+	hj2_p=mp.Process(target=hj2.train_model)
+	
+	hj1_p.start()
+	hj2_p.start()
+	
+	hj1_p.join()
+	hj2_p.join()
+	
+	plt.show()
+	
+	'''
 	if len(sys.argv)>1:
 		index=sys.argv[1]
 		lstm=HjLstm(pre_day, int(index), stock_id, data)
 		lstm.train_model()
 		#lstm.plot()
-	
+	'''
 	'''
 	else:
 		lstms=[HjLstm(pre_day, i, stock_id, data) for i in range(1,8)]
