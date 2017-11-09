@@ -51,11 +51,16 @@ class HjLstm:
 			self.model.add(LSTM(100))
 			self.model.add(Dense(1))
 			self.model.add(Activation('linear'))
-			self.model.compile(loss='mse', optimizer='rmsprop')
-			if(os.path.exists(self.weights_file)):
-					self.model.load_weights(self.weights_file)
+			
+		elif self.nn_layer=='dnn_10_100_10_1':
+			self.model = Sequential()
+			self.model.add(Dense(10, input_shape=(None, 1), activation='relu'))
+			self.model.add(Dense(100, input_shape=(None, 1), activation='relu'))
+			self.model.add(Dense(10, input_shape=(None, 1), activation='linear'))
 		
-		
+		self.model.compile(loss='mse', optimizer='rmsprop')
+		if(os.path.exists(self.weights_file)):
+			self.model.load_weights(self.weights_file)
 		#plot_model(self.model)
 
 	def train_model(self, d=None):
@@ -123,7 +128,7 @@ if __name__ == '__main__':
 	data=pd.read_pickle(data_file)['close']
 	#print np.array(data).shape
 
-	
+	'''
 	mgr=mp.Manager()
 	d=mgr.dict()
 	hj1=HjLstm(pre_day, dict_day, stock_id, data, 'hj1')
@@ -137,14 +142,17 @@ if __name__ == '__main__':
 	
 	hj1_p.join()
 	hj2_p.join()
-	
-	print d
 
 	for i,v in d.items():
 		plt.plot(v, label=i)
 
 	plt.show()
+	'''
 	
+	nn=HjLstm(pre_day, dict_day, stock_id, data, 'dnn_10_100_10_1')
+	nn.build_model()
+	#nn.train_model()
+		
 	'''
 	if len(sys.argv)>1:
 		index=sys.argv[1]
