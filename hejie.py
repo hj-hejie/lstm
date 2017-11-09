@@ -45,22 +45,25 @@ class HjLstm:
 		self.test_y = y[split:]
 
 	def build_model(self):
-		self.model = Sequential()
-		self.model.add(LSTM(50, input_shape=(None, 1), return_sequences=True))
-		self.model.add(LSTM(100))
-		self.model.add(Dense(1))
-		self.model.add(Activation('linear'))
-		self.model.compile(loss='mse', optimizer='rmsprop')
-		if(os.path.exists(self.weights_file)):
-				self.model.load_weights(self.weights_file)
+		if self.nn_layer=='_50_100':
+			self.model = Sequential()
+			self.model.add(LSTM(50, input_shape=(None, 1), return_sequences=True))
+			self.model.add(LSTM(100))
+			self.model.add(Dense(1))
+			self.model.add(Activation('linear'))
+			self.model.compile(loss='mse', optimizer='rmsprop')
+			if(os.path.exists(self.weights_file)):
+					self.model.load_weights(self.weights_file)
+		
+		
 		#plot_model(self.model)
 
-	def train_model(self, d):
+	def train_model(self, d=None):
 		history=self.model.fit(self.train_x, self.train_y, batch_size=20, epochs=2, validation_split=0.3)
 		self.model.save_weights(self.weights_file)
-		
-		d[self.nn_layer+'loss']=history.history['loss']
-		d[self.nn_layer+'val_loss']=history.history['val_loss']
+		if d is not None:
+			d[self.nn_layer+'loss']=history.history['loss']
+			d[self.nn_layer+'val_loss']=history.history['val_loss']
 		#plt.show()
 
 	def do_predict(self):
@@ -101,7 +104,7 @@ def plot(lstms, data):
 	test_x=np.reshape(test_x, (1, len(test_x), 1))
 	predict_y=predict(lstms, test_x)
 	predict_xy=np.append(test_x, predict_y)
-	plt.figure(1)
+	#plt.figure(1)
 	plt.plot(np.reshape(test_data, (len(test_data), 1)), 'r-')
 	plt.plot(np.reshape(predict_xy, (len(predict_xy), 1)), 'g:')
 	plt.show()
@@ -120,6 +123,7 @@ if __name__ == '__main__':
 	data=pd.read_pickle(data_file)['close']
 	#print np.array(data).shape
 
+	
 	mgr=mp.Manager()
 	d=mgr.dict()
 	hj1=HjLstm(pre_day, dict_day, stock_id, data, 'hj1')
