@@ -10,7 +10,7 @@ import multiprocessing as mp
 import tushare as ts
 from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
-from keras.layers import LSTM, Dense, Activation
+from keras.layers import LSTM, Dense, Activation, Conv1D, MaxPooling1D, GlobalAveragePooling1D
 from keras.utils import plot_model
 
 class HjLstm: 
@@ -45,18 +45,33 @@ class HjLstm:
 		self.test_y = y[split:]
 
 	def build_model(self):
+
 		if self.nn_layer=='_50_100':
 			self.model = Sequential()
 			self.model.add(LSTM(50, input_shape=(None, 1), return_sequences=True))
 			self.model.add(LSTM(100))
-			self.model.add(Dense(1))
-			self.model.add(Activation('linear'))
+			self.model.add(Dense(1, activation='linear'))
+
+		elif self.nn_layer=='nn_10_100_10_1':
+			self.model=Sequential()
+			self.model.add(LSTM(50, input_shape=(20,), return_sequences=True))
+			self.model.add(LSTM(100))
+                        self.model.add(Dense(1, activation='linear'))		
 			
-		elif self.nn_layer=='dnn_10_100_10_1':
+			
+		elif self.nn_layer=='nn_10_100_10_1':
 			self.model = Sequential()
-			self.model.add(Dense(10, input_shape=(None, 1), activation='relu'))
-			self.model.add(Dense(100, input_shape=(None, 1), activation='relu'))
-			self.model.add(Dense(10, input_shape=(None, 1), activation='linear'))
+			self.model.add(Dense(10, input_dim=1, activation='relu'))
+			self.model.add(Dense(100, activation='relu'))
+			self.model.add(Dense(10, activation='relu'))
+			self.model.add(Dense(1, activation='linear'))
+
+		elif self.nn_layer=='dnn_10_100_10_1':
+			self.model=Sequential()
+			self.model.add(Conv1D(64, 3, activation='relu', input_shape=(None, 1)))
+			self.model.add(GlobalAveragePooling1D())
+			self.model.add(Dense(1, activation='linear'))
+
 		
 		self.model.compile(loss='mse', optimizer='rmsprop')
 		if(os.path.exists(self.weights_file)):
@@ -151,7 +166,8 @@ if __name__ == '__main__':
 	
 	nn=HjLstm(pre_day, dict_day, stock_id, data, 'dnn_10_100_10_1')
 	nn.build_model()
-	#nn.train_model()
+	nn.train_model()
+	print nn.model.predict(nn.test_x)[0:10,:]
 		
 	'''
 	if len(sys.argv)>1:
