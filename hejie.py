@@ -11,7 +11,7 @@ import tushare as ts
 from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
 from keras.layers import LSTM, Dense, Activation, Conv1D, MaxPooling1D, GlobalAveragePooling1D
-from keras.utils import plot_model
+#from keras.utils import plot_model
 
 class HjLstm: 
 
@@ -59,14 +59,14 @@ class HjLstm:
                         self.model.add(Dense(1, activation='linear'))		
 			
 			
-		elif self.nn_layer=='nn_10_100_10_1':
-			self.model = Sequential()
-			self.model.add(Dense(10, input_dim=1, activation='relu'))
-			self.model.add(Dense(100, activation='relu'))
-			self.model.add(Dense(10, activation='relu'))
-			self.model.add(Dense(1, activation='linear'))
-
 		elif self.nn_layer=='dnn_10_100_10_1':
+			self.model = Sequential()
+                        self.model.add(Dense(1, input_dim=self.pre_day, activation='linear'))
+			#self.model.add(Dense(100, activation='relu'))
+			#self.model.add(Dense(10, activation='relu'))
+			#self.model.add(Dense(1, activation='linear'))
+
+		elif self.nn_layer=='nn_10_100_10_1':
 			self.model=Sequential()
 			self.model.add(Conv1D(64, 3, activation='relu', input_shape=(None, 1)))
 			self.model.add(GlobalAveragePooling1D())
@@ -79,6 +79,8 @@ class HjLstm:
 		#plot_model(self.model)
 
 	def train_model(self, d=None):
+                if type(self.model.get_layer(index=1)) is Dense:
+                    self.train_x=np.reshape(self.train_x, self.train_x.shape[:-1])
 		history=self.model.fit(self.train_x, self.train_y, batch_size=20, epochs=2, validation_split=0.3)
 		self.model.save_weights(self.weights_file)
 		if d is not None:
@@ -167,7 +169,8 @@ if __name__ == '__main__':
 	nn=HjLstm(pre_day, dict_day, stock_id, data, 'dnn_10_100_10_1')
 	nn.build_model()
 	nn.train_model()
-	print nn.model.predict(nn.test_x)[0:10,:]
+        #print nn.test_y.shape
+        print nn.model.predict(np.reshape(nn.test_x, nn.test_x.shape[:-1])).shape
 		
 	'''
 	if len(sys.argv)>1:
