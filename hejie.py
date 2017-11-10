@@ -61,9 +61,9 @@ class HjLstm:
 			
 		elif self.nn_layer=='dnn_10_100_10_1':
 			self.model = Sequential()
-            self.model.add(Dense(1, input_dim=self.pre_day, activation='relu'))
-			self.model.add(Dense(100, activation='relu'))
-			self.model.add(Dense(10, activation='relu'))
+            		self.model.add(Dense(1, input_shape=(self.pre_day,), activation='sigmoid'))
+			self.model.add(Dense(100, activation='sigmoid'))
+			self.model.add(Dense(10, activation='sigmoid'))
 			self.model.add(Dense(1, activation='linear'))
 
 		elif self.nn_layer=='nn_10_100_10_1':
@@ -72,8 +72,8 @@ class HjLstm:
 			self.model.add(GlobalAveragePooling1D())
 			self.model.add(Dense(1, activation='linear'))
 
-		
 		self.model.compile(loss='mse', optimizer='rmsprop')
+
 		if(os.path.exists(self.weights_file)):
 			self.model.load_weights(self.weights_file)
 		#plot_model(self.model)
@@ -81,13 +81,19 @@ class HjLstm:
 	def train_model(self, d=None):
 		if type(self.model.get_layer(index=1)) is Dense:
 			self.train_x=np.reshape(self.train_x, self.train_x.shape[:-1])
-		history=self.model.fit(self.train_x, self.train_y, batch_size=20, epochs=2, validation_split=0.3)
+		history=self.model.fit(self.train_x, self.train_y, batch_size=30, epochs=500, validation_split=0.3)
+
 		self.model.save_weights(self.weights_file)
+
+		plt.plot(history.history['loss'], label='loss')
+		plt.plot(history.history['val_loss'], label='val_loss')
+		plt.show()
+
 		if d is not None:
 			d[self.nn_layer+'loss']=history.history['loss']
 			d[self.nn_layer+'val_loss']=history.history['val_loss']
 
-	def predict(self, x):
+	def predict(self, x=None):
 		if x is None:
 			if type(self.model.get_layer(index=1)) is Dense:
 				self.test_x=np.reshape(self.test_x, self.test_x.shape[:-1])
@@ -168,8 +174,9 @@ if __name__ == '__main__':
 	'''
 	
 	nn=HjLstm(pre_day, dict_day, stock_id, data, 'dnn_10_100_10_1')
-	nn.build_model()
 	nn.train_model()
+	nn.predict()
+	#nn.plot()
 	#print nn.test_y.shape
 	#print nn.model.predict(np.reshape(nn.test_x, nn.test_x.shape[:-1])).shape
 		
