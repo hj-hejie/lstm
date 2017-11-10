@@ -10,7 +10,7 @@ import multiprocessing as mp
 import tushare as ts
 from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
-from keras.layers import LSTM, Dense, Activation, Conv1D, MaxPooling1D, GlobalAveragePooling1D
+from keras.layers import LSTM, Dense, Activation, Conv1D, MaxPooling1D, GlobalAveragePooling1D, Dropout
 #from keras.utils import plot_model
 
 class HjLstm: 
@@ -52,18 +52,19 @@ class HjLstm:
 			self.model.add(LSTM(100))
 			self.model.add(Dense(1, activation='linear'))
 
-		elif self.nn_layer=='nn_10_100_10_1':
+		elif self.nn_layer=='dnn_10_100_10_1':
 			self.model=Sequential()
-			self.model.add(LSTM(50, input_shape=(20,), return_sequences=True))
+			self.model.add(LSTM(50, input_shape=(None, 1), return_sequences=True))
 			self.model.add(LSTM(100))
                         self.model.add(Dense(1, activation='linear'))		
 			
 			
-		elif self.nn_layer=='dnn_10_100_10_1':
+		elif self.nn_layer=='xdnn_10_100_10_1':
 			self.model = Sequential()
-            		self.model.add(Dense(1, input_shape=(self.pre_day,), activation='sigmoid'))
-			self.model.add(Dense(100, activation='sigmoid'))
-			self.model.add(Dense(10, activation='sigmoid'))
+            		self.model.add(Dense(100, input_shape=(self.pre_day,), activation='relu'))
+			self.model.add(Dropout(0.5))
+			self.model.add(Dense(10, activation='relu'))
+			self.model.add(Dropout(0.5))	
 			self.model.add(Dense(1, activation='linear'))
 
 		elif self.nn_layer=='nn_10_100_10_1':
@@ -81,7 +82,7 @@ class HjLstm:
 	def train_model(self, d=None):
 		if type(self.model.get_layer(index=1)) is Dense:
 			self.train_x=np.reshape(self.train_x, self.train_x.shape[:-1])
-		history=self.model.fit(self.train_x, self.train_y, batch_size=30, epochs=500, validation_split=0.3)
+		history=self.model.fit(self.train_x, self.train_y, batch_size=30, epochs=50, validation_split=0.3)
 
 		self.model.save_weights(self.weights_file)
 
