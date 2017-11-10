@@ -61,10 +61,10 @@ class HjLstm:
 			
 		elif self.nn_layer=='dnn_10_100_10_1':
 			self.model = Sequential()
-                        self.model.add(Dense(1, input_dim=self.pre_day, activation='linear'))
-			#self.model.add(Dense(100, activation='relu'))
-			#self.model.add(Dense(10, activation='relu'))
-			#self.model.add(Dense(1, activation='linear'))
+            self.model.add(Dense(1, input_dim=self.pre_day, activation='relu'))
+			self.model.add(Dense(100, activation='relu'))
+			self.model.add(Dense(10, activation='relu'))
+			self.model.add(Dense(1, activation='linear'))
 
 		elif self.nn_layer=='nn_10_100_10_1':
 			self.model=Sequential()
@@ -79,30 +79,31 @@ class HjLstm:
 		#plot_model(self.model)
 
 	def train_model(self, d=None):
-                if type(self.model.get_layer(index=1)) is Dense:
-                    self.train_x=np.reshape(self.train_x, self.train_x.shape[:-1])
+		if type(self.model.get_layer(index=1)) is Dense:
+			self.train_x=np.reshape(self.train_x, self.train_x.shape[:-1])
 		history=self.model.fit(self.train_x, self.train_y, batch_size=20, epochs=2, validation_split=0.3)
 		self.model.save_weights(self.weights_file)
 		if d is not None:
 			d[self.nn_layer+'loss']=history.history['loss']
 			d[self.nn_layer+'val_loss']=history.history['val_loss']
-		#plt.show()
 
-	def do_predict(self):
-		self.predict_y=self.model.predict(self.test_x)
+	def predict(self, x):
+		if x is None:
+			if type(self.model.get_layer(index=1)) is Dense:
+				self.test_x=np.reshape(self.test_x, self.test_x.shape[:-1])
+			self.predict_y=self.model.predict(self.test_x)
+		else:
+			predict_y=self.model.predict(test_x)
+			return self.scaler.inverse_transform(predict_y)
 
 	def plot(self):
-		self.do_predict()
+		self.predict()
 		predict_y_inverse = self.scaler.inverse_transform(self.predict_y)
 		test_y_inverse = self.scaler.inverse_transform(self.test_y)
-		#plt.figure(1)
 		plt.plot(predict_y_inverse, 'g:')
 		plt.plot(test_y_inverse, 'r-')
 		plt.show()
-
-	def predict(self, test_x):
-		predict_y=self.model.predict(test_x)
-		return self.scaler.inverse_transform(predict_y)
+		
 
 def do_train(lstm):
 	lstm.train_model()
@@ -169,8 +170,8 @@ if __name__ == '__main__':
 	nn=HjLstm(pre_day, dict_day, stock_id, data, 'dnn_10_100_10_1')
 	nn.build_model()
 	nn.train_model()
-        #print nn.test_y.shape
-        print nn.model.predict(np.reshape(nn.test_x, nn.test_x.shape[:-1])).shape
+	#print nn.test_y.shape
+	#print nn.model.predict(np.reshape(nn.test_x, nn.test_x.shape[:-1])).shape
 		
 	'''
 	if len(sys.argv)>1:
