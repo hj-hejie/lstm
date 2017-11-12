@@ -52,7 +52,7 @@ class HjLstm:
 			self.model.add(LSTM(100))
 			self.model.add(Dense(1, activation='linear'))
 
-		elif self.nn_layer=='dnn_10_100_10_1':
+		elif self.nn_layer=='nn_10_100_10_1':
 			self.model=Sequential()
 			self.model.add(LSTM(50, input_shape=(None, 1), return_sequences=True))
 			self.model.add(LSTM(100))
@@ -67,11 +67,13 @@ class HjLstm:
 			self.model.add(Dropout(0.5))	
 			self.model.add(Dense(1, activation='linear'))
 
-		elif self.nn_layer=='nn_10_100_10_1':
+		elif self.nn_layer=='dnn_10_100_10_1':
 			self.model=Sequential()
-			self.model.add(Conv1D(64, 3, activation='relu', input_shape=(None, 1)))
+			self.model.add(Conv1D(5, 5, activation='relu', input_shape=(None, 1)))
+                        self.model.add(MaxPooling1D())
+                        self.model.add(Conv1D(5, 5, activation='relu'))
 			self.model.add(GlobalAveragePooling1D())
-			self.model.add(Dense(1, activation='linear'))
+			self.model.add(Dense(1, activation='sigmoid'))
 
 		self.model.compile(loss='mse', optimizer='rmsprop')
 
@@ -82,7 +84,7 @@ class HjLstm:
 	def train_model(self, d=None):
 		if type(self.model.get_layer(index=1)) is Dense:
 			self.train_x=np.reshape(self.train_x, self.train_x.shape[:-1])
-		history=self.model.fit(self.train_x, self.train_y, batch_size=30, epochs=50, validation_split=0.3)
+		history=self.model.fit(self.train_x, self.train_y, batch_size=50, epochs=2000, validation_split=0.3)
 
 		self.model.save_weights(self.weights_file)
 
@@ -176,8 +178,7 @@ if __name__ == '__main__':
 	
 	nn=HjLstm(pre_day, dict_day, stock_id, data, 'dnn_10_100_10_1')
 	nn.train_model()
-	nn.predict()
-	#nn.plot()
+        #nn.plot()
 	#print nn.test_y.shape
 	#print nn.model.predict(np.reshape(nn.test_x, nn.test_x.shape[:-1])).shape
 		
