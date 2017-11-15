@@ -2,6 +2,7 @@
 
 import sys
 import os
+from datetime import datetime, timedelta
 import threading
 import pandas as pd
 import numpy as np
@@ -15,21 +16,38 @@ from keras.layers import LSTM, Dense, Activation, Conv1D, MaxPooling1D, GlobalAv
 
 class HjLstm: 
 
-	def __init__(self, pre_day, dict_day, stock_id, data, nn_layer='_50_100'):
-		self.data=data
+	def __init__(self, pre_day, dict_day, stock_id, nn_layer='_50_100'):
 		self.stock_id=stock_id
 		self.nn_layer=nn_layer
 		self.pre_day=pre_day
 		self.dict_day=dict_day
 		self.split=0.8
 		self.weights_file=self.stock_id+self.nn_layer+'_'+str(self.pre_day)+'_'+str(self.dict_day)+'.h5'
+		self.data_file=self.stock_id+'.csv'
 		self.scaler = MinMaxScaler()
 		self.build_model()
 		self.load_data()
+		
+	def load_file(self):
+		if(os.path.exists(self.data_file)):
+			self.data=pd.read_csv(self.data_file, index_col='date')
+			recent_date=max(self.data.index)
+			recent_date=datetime.strptime(recent_date, '%Y-%m-%d')
+			delta=timedelta(days=1)
+			if recent_date  < datetime.now():
+				recent_date=datetime.strftime(recent_date+delta, '%Y-%m-%d')
+				new_data=ts.get_hist_data(self.stock_id, recent_date)
+				self.data=new_data.append(self.data)
+			
+		else:
+			self.data=ts.get_hist_data(self.stock_id)
+
+		self.data.to_csv(self.data_file)
 
 	def load_data(self):
+		self.load_file()
 		seq_length=self.pre_day+self.dict_day
-		data=self.data
+		data=self.data['close']
 		data=np.reshape(data, (len(data),1))
 		data= self.scaler.fit_transform(data)
 		reshaped_data = []
@@ -140,19 +158,23 @@ def plot(lstms, data):
 	plt.plot(np.reshape(test_data, (len(test_data), 1)), 'r-')
 	plt.plot(np.reshape(predict_xy, (len(predict_xy), 1)), 'g:')
 	plt.show()
+
+
 	
 if __name__ == '__main__':
-	stock_id='600848'
+	#stock_id='600848'
+	stock_id='000001'
 	#start='2011-01-01'
 	start='1990-01-01'
-	end='2018-01-18'
-	data_file=stock_id+'_'+start+'_'+end+'.pkl'
+	end='2017-11-13'
+	data_file=stock_id+'csv'
 	pre_day=20
 	dict_day=7
 
 	#data=ts.get_hist_data(stock_id, start=start, end=end)
 	#data.to_pickle(data_file)
-	data=pd.read_pickle(data_file)['close']
+	#data=pd.read_pickle(data_file)['close']
+	#data.to_csv(data_file)
 	#print np.array(data).shape
 
 	'''
@@ -176,8 +198,9 @@ if __name__ == '__main__':
 	plt.show()
 	'''
 	
-	nn=HjLstm(pre_day, dict_day, stock_id, data, 'dnn_10_100_10_1')
-	nn.train_model()
+	nn=HjLstm(pre_day, dict_day, stock_id, 'dnn_10_100_10_1')
+	nn.load_file()
+	#nn.train_model()
         #nn.plot()
 	#print nn.test_y.shape
 	#print nn.model.predict(np.reshape(nn.test_x, nn.test_x.shape[:-1])).shape
