@@ -13,6 +13,7 @@ from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
 from keras.layers import LSTM, Dense, Activation, Conv1D, MaxPooling1D, GlobalAveragePooling1D, Dropout
 #from keras.utils import plot_model
+import pdb
 
 class HjLstm: 
 
@@ -25,8 +26,8 @@ class HjLstm:
 		self.weights_file=self.stock_id+self.nn_layer+'_'+str(self.pre_day)+'_'+str(self.dict_day)+'.h5'
 		self.data_file=self.stock_id+'.csv'
 		self.scaler = MinMaxScaler()
-		self.build_model()
-		self.load_data()
+		#self.build_model()
+		#self.load_data()
 		
 	def load_file(self):
 		if(os.path.exists(self.data_file)):
@@ -100,15 +101,21 @@ class HjLstm:
 		#plot_model(self.model)
 
 	def train_model(self, d=None):
+
+		if(not hasattr(self, 'data')):
+	                self.load_data()
+		if(not hasattr(self, 'model')):
+			self.build_model()
+
 		if type(self.model.get_layer(index=1)) is Dense:
 			self.train_x=np.reshape(self.train_x, self.train_x.shape[:-1])
 		history=self.model.fit(self.train_x, self.train_y, batch_size=50, epochs=2000, validation_split=0.3)
 
 		self.model.save_weights(self.weights_file)
 
-		plt.plot(history.history['loss'], label='loss')
-		plt.plot(history.history['val_loss'], label='val_loss')
-		plt.show()
+		#plt.plot(history.history['loss'], label='loss')
+		#plt.plot(history.history['val_loss'], label='val_loss')
+		#plt.show()
 
 		if d is not None:
 			d[self.nn_layer+'loss']=history.history['loss']
@@ -208,8 +215,8 @@ if __name__ == '__main__':
 	'''
 	
 	nn=HjLstm(pre_day, dict_day, stock_id, 'dnn_10_100_10_1')
-	nn.load_file()
-	#nn.train_model()
+	#nn.load_file()
+	nn.train_model()
         #nn.plot()
 	#print nn.test_y.shape
 	#print nn.model.predict(np.reshape(nn.test_x, nn.test_x.shape[:-1])).shape
