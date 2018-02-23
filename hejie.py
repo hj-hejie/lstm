@@ -163,19 +163,28 @@ def plot(lstms, data):
 	
 if __name__ == '__main__':
 	#stock_id='600848'
-	stock_id='000001'
+	#stock_id='000001'
+	stock_id='hs300'
 	#start='2011-01-01'
 	start='1990-01-01'
-	end='2017-11-13'
-	data_file=stock_id+'csv'
+	#end='1990-01-05'
+	#start='2018-02-18'
+	end='2018-02-23'
+	#data_file=stock_id+'.csv'
 	pre_day=20
 	dict_day=7
-
-	#data=ts.get_hist_data(stock_id, start=start, end=end)
+	
+	'''
+	data=ts.get_hist_data(stock_id, start=start, end=end)
 	#data.to_pickle(data_file)
 	#data=pd.read_pickle(data_file)['close']
+	data=data['close']
 	#data.to_csv(data_file)
-	#print np.array(data).shape
+	print 'hejie*****************'
+	print np.array(data).shape
+	print np.array(data)
+	print 'hejie---------------------'
+	'''
 
 	'''
 	mgr=mp.Manager()
