@@ -122,6 +122,12 @@ class HjLstm:
 			d[self.nn_layer+'val_loss']=history.history['val_loss']
 
 	def predict(self, x=None):
+
+		if(not hasattr(self, 'data')):
+                        self.load_data()
+                if(not hasattr(self, 'model')):
+                	self.build_model()
+
 		if x is None:
 			if type(self.model.get_layer(index=1)) is Dense:
 				self.test_x=np.reshape(self.test_x, self.test_x.shape[:-1])
@@ -131,6 +137,7 @@ class HjLstm:
 			return self.scaler.inverse_transform(predict_y)
 
 	def plot(self):
+
 		self.predict()
 		predict_y_inverse = self.scaler.inverse_transform(self.predict_y)
 		test_y_inverse = self.scaler.inverse_transform(self.test_y)
