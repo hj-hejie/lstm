@@ -37,11 +37,11 @@ class HjLstm:
 			delta=timedelta(days=1)
 			if recent_date  < datetime.now():
 				recent_date=datetime.strftime(recent_date+delta, '%Y-%m-%d')
-				new_data=ts.get_hist_data(self.stock_id, recent_date)
-				self.data=new_data.append(self.data)
+				new_data=ts.get_hist_data(self.stock_id, recent_date).sort_index(axis=0, ascending=True)
+				self.data=self.data.append(new_data)
 			
 		else:
-			self.data=ts.get_hist_data(self.stock_id)
+			self.data=ts.get_hist_data(self.stock_id).sort_index(axis=0, ascending=True)
 
 		self.data.to_csv(self.data_file)
 
@@ -182,16 +182,18 @@ if __name__ == '__main__':
 	#stock_id='000001'
 	stock_id='hs300'
 	#start='2011-01-01'
-	start='1990-01-01'
+	#start='1990-01-01'
 	#end='1990-01-05'
-	#start='2018-02-18'
-	end='2018-02-23'
+	#start='2018-02-11'
+	#end='2018-02-23'
 	#data_file=stock_id+'.csv'
 	pre_day=20
 	dict_day=7
 	
 	'''
 	data=ts.get_hist_data(stock_id, start=start, end=end)
+	data=data.sort_index(axis=0, ascending=True)
+	print data
 	#data.to_pickle(data_file)
 	#data=pd.read_pickle(data_file)['close']
 	data=data['close']
@@ -201,7 +203,6 @@ if __name__ == '__main__':
 	print np.array(data)
 	print 'hejie---------------------'
 	'''
-
 	'''
 	mgr=mp.Manager()
 	d=mgr.dict()
@@ -223,10 +224,10 @@ if __name__ == '__main__':
 	plt.show()
 	'''
 	
-	#nn=HjLstm(pre_day, dict_day, stock_id, 'dnn_10_100_10_1')
+	nn=HjLstm(pre_day, dict_day, stock_id, 'dnn_10_100_10_1')
 	#nn.load_file()
-	#nn.train_model()
-        #nn.plot()
+	nn.train_model()
+        nn.plot()
 	#print nn.test_y.shape
 	#print nn.model.predict(np.reshape(nn.test_x, nn.test_x.shape[:-1])).shape
 		
@@ -238,6 +239,7 @@ if __name__ == '__main__':
 		#lstm.plot()
 	'''
 	#else:
+'''
 	lstms=[HjLstm(pre_day, i, stock_id, 'dnn_10_100_10_1') for i in range(1, dict_day+1)]
 	#train(lstms)
 	data=lstms[0].data['close'][:pre_day]
@@ -248,4 +250,4 @@ if __name__ == '__main__':
 	print 'hejie***************'
 		#plot(lstms, data)
 		#print fortune(lstms, data)
-
+'''
