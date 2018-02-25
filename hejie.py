@@ -225,9 +225,9 @@ if __name__ == '__main__':
 	'''
 	
 	nn=HjLstm(pre_day, dict_day, stock_id, 'dnn_10_100_10_1')
-	#nn.load_file()
-	nn.train_model()
-        nn.plot()
+	nn.load_file()
+	#nn.train_model()
+        #nn.plot()
 	#print nn.test_y.shape
 	#print nn.model.predict(np.reshape(nn.test_x, nn.test_x.shape[:-1])).shape
 		
