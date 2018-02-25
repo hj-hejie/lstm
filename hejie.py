@@ -223,7 +223,8 @@ if __name__ == '__main__':
 	plt.show()
 	'''
 	
-	#nn=HjLstm(pre_day, dict_day, stock_id, 'dnn_10_100_10_1')
+	nn=HjLstm(pre_day, dict_day, stock_id, 'dnn_10_100_10_1')
+	data=lstms[0].data['close'][-5:]
 	#nn.load_file()
 	#nn.train_model()
         #nn.plot()
@@ -237,11 +238,14 @@ if __name__ == '__main__':
 		lstm.train_model()
 		#lstm.plot()
 	'''
-	
+	'''
 	#else:
 		lstms=[HjLstm(pre_day, i, stock_id, data) for i in range(1,8)]
 		train(lstms)
+		data=lstms[0].data['close'][-5:]
+		print 'hejie***************'
+		print data
 		#plot(lstms, data)
-		#print fortune(lstms)
-	
+		#print fortune(lstms, data)
+	'''
 
