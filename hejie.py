@@ -27,7 +27,7 @@ class HjLstm:
 		self.data_file=self.stock_id+'.csv'
 		self.scaler = MinMaxScaler()
 		#self.build_model()
-		#self.load_data()
+		self.load_data()
 		
 	def load_file(self):
 		if(os.path.exists(self.data_file)):
@@ -133,7 +133,7 @@ class HjLstm:
 				self.test_x=np.reshape(self.test_x, self.test_x.shape[:-1])
 			self.predict_y=self.model.predict(self.test_x)
 		else:
-			predict_y=self.model.predict(test_x)
+			predict_y=self.model.predict(x)
 			return self.scaler.inverse_transform(predict_y)
 
 	def plot(self):
@@ -155,7 +155,7 @@ def train(lstms):
 		do_train(lstm)
 
 def predict(lstms, data):
-	data_x=np.reshape(data, (1, len(test_x), 1))
+	data_x=np.reshape(data, (1, len(data), 1))
 	predict_ys=np.array([])
 	for lstm in lstms:
 		predict_y=lstm.predict(data_x)
@@ -172,10 +172,10 @@ def plot(lstms, data):
 def fortune(lstms, data):
 	predict_ys=predict(lstms, data)
 	predict_ys_flat=predict_ys.flatten()
-	data_falt=np.repeat(data[-1], len(predict_ys_flat))
-	rate=(predict_ys_flat-data_falt)/data_falt
-	ask=0.3/(0.7-0.1)
-	return rate>ask
+	data_flat=np.repeat(data[0], len(predict_ys_flat))
+	rate=(predict_ys_flat-data_flat)/data_flat
+	ask=np.repeat(0.7/(0.3-0.05), len(predict_ys_flat))
+	return data_flat, predict_ys_flat, rate, ask, rate>ask
 	
 if __name__ == '__main__':
 	#stock_id='600848'
@@ -223,8 +223,7 @@ if __name__ == '__main__':
 	plt.show()
 	'''
 	
-	nn=HjLstm(pre_day, dict_day, stock_id, 'dnn_10_100_10_1')
-	data=lstms[0].data['close'][-5:]
+	#nn=HjLstm(pre_day, dict_day, stock_id, 'dnn_10_100_10_1')
 	#nn.load_file()
 	#nn.train_model()
         #nn.plot()
@@ -238,14 +237,15 @@ if __name__ == '__main__':
 		lstm.train_model()
 		#lstm.plot()
 	'''
-	'''
 	#else:
-		lstms=[HjLstm(pre_day, i, stock_id, data) for i in range(1,8)]
-		train(lstms)
-		data=lstms[0].data['close'][-5:]
-		print 'hejie***************'
-		print data
+	lstms=[HjLstm(pre_day, i, stock_id, 'dnn_10_100_10_1') for i in range(1, dict_day+1)]
+	#train(lstms)
+	data=lstms[0].data['close'][:pre_day]
+	print 'hejie***************'
+	prediction=fortune(lstms, data)
+	for i in prediction:
+		print i
+	print 'hejie***************'
 		#plot(lstms, data)
 		#print fortune(lstms, data)
-	'''
 
