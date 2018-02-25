@@ -172,7 +172,7 @@ def plot(lstms, data):
 def fortune(lstms, data):
 	predict_ys=predict(lstms, data)
 	predict_ys_flat=predict_ys.flatten()
-	data_flat=np.repeat(data[0], len(predict_ys_flat))
+	data_flat=np.repeat(data[-1], len(predict_ys_flat))
 	rate=(predict_ys_flat-data_flat)/data_flat
 	ask=np.repeat(0.7/(0.3-0.05), len(predict_ys_flat))
 	return data_flat, predict_ys_flat, rate, ask, rate>ask
@@ -224,8 +224,8 @@ if __name__ == '__main__':
 	plt.show()
 	'''
 	
-	nn=HjLstm(pre_day, dict_day, stock_id, 'dnn_10_100_10_1')
-	nn.load_file()
+	#nn=HjLstm(pre_day, dict_day, stock_id, 'dnn_10_100_10_1')
+	#nn.load_file()
 	#nn.train_model()
         #nn.plot()
 	#print nn.test_y.shape
@@ -239,10 +239,13 @@ if __name__ == '__main__':
 		#lstm.plot()
 	'''
 	#else:
-'''
+
 	lstms=[HjLstm(pre_day, i, stock_id, 'dnn_10_100_10_1') for i in range(1, dict_day+1)]
 	#train(lstms)
-	data=lstms[0].data['close'][:pre_day]
+	data=lstms[0].data['close'][-pre_day:]
+	#print data
+	plot(lstms, data)
+	'''
 	print 'hejie***************'
 	prediction=fortune(lstms, data)
 	for i in prediction:
@@ -250,4 +253,4 @@ if __name__ == '__main__':
 	print 'hejie***************'
 		#plot(lstms, data)
 		#print fortune(lstms, data)
-'''
+	'''
