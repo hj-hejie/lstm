@@ -28,16 +28,22 @@ class HjLstm:
 		self.scaler = MinMaxScaler()
 		#self.build_model()
 		self.load_data()
-		
+
+	def get_new_data(self):
+		new_data=None;
+		self.data=pd.read_csv(self.data_file, index_col='date')
+		recent_date=max(self.data.index)
+		recent_date=datetime.strptime(recent_date, '%Y-%m-%d')
+		delta=timedelta(days=1)
+		if recent_date  < datetime.now():
+			recent_date=datetime.strftime(recent_date+delta, '%Y-%m-%d')
+			new_data=ts.get_hist_data(self.stock_id, recent_date).sort_index(axis=0, ascending=True)
+		return new_data
+
 	def load_file(self):
-		if(os.path.exists(self.data_file)):
-			self.data=pd.read_csv(self.data_file, index_col='date')
-			recent_date=max(self.data.index)
-			recent_date=datetime.strptime(recent_date, '%Y-%m-%d')
-			delta=timedelta(days=1)
-			if recent_date  < datetime.now():
-				recent_date=datetime.strftime(recent_date+delta, '%Y-%m-%d')
-				new_data=ts.get_hist_data(self.stock_id, recent_date).sort_index(axis=0, ascending=True)
+		if os.path.exists(self.data_file):
+			new_data=self.get_new_data();
+			if new_data is not None:
 				self.data=self.data.append(new_data)
 			
 		else:
@@ -123,9 +129,9 @@ class HjLstm:
 
 	def predict(self, x=None):
 
-		if(not hasattr(self, 'data')):
+		if not hasattr(self, 'data') and x is None:
                         self.load_data()
-                if(not hasattr(self, 'model')):
+                if not hasattr(self, 'model'):
                 	self.build_model()
 
 		if x is None:
@@ -165,6 +171,9 @@ def predict(lstms, data):
 def plot(lstms, data):
 	predict_ys=predict(lstms, data)
 	predict_data=np.append(data, predict_ys)
+	new_data=lstms[0].get_new_data()
+	if new_data is not None:
+		data.append(new_data['close'])
 	plt.plot(np.reshape(data, (len(data), 1)), 'r-')
 	plt.plot(np.reshape(predict_data, (len(predict_data), 1)), 'g:')
 	plt.show()
@@ -175,7 +184,11 @@ def fortune(lstms, data):
 	data_flat=np.repeat(data[-1], len(predict_ys_flat))
 	rate=(predict_ys_flat-data_flat)/data_flat
 	ask=np.repeat(0.7/(0.3-0.05), len(predict_ys_flat))
-	return data_flat, predict_ys_flat, rate, ask, rate>ask
+	new_data=lstms[0].get_new_data()
+	real_data=None
+        if new_data is not None:
+        	real_data=new_data['close']
+	return data_flat, predict_ys_flat, rate, ask, rate>ask, real_data
 	
 if __name__ == '__main__':
 	#stock_id='600848'
