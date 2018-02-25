@@ -241,11 +241,10 @@ if __name__ == '__main__':
 	#else:
 
 	lstms=[HjLstm(pre_day, i, stock_id, 'dnn_10_100_10_1') for i in range(1, dict_day+1)]
-	#train(lstms)
+	train(lstms)
 	data=lstms[0].data['close'][-pre_day:]
 	#print data
-	plot(lstms, data)
-	'''
+	#plot(lstms, data)
 	print 'hejie***************'
 	prediction=fortune(lstms, data)
 	for i in prediction:
@@ -253,4 +252,3 @@ if __name__ == '__main__':
 	print 'hejie***************'
 		#plot(lstms, data)
 		#print fortune(lstms, data)
-	'''
