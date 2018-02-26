@@ -27,11 +27,10 @@ class HjLstm:
 		self.data_file=self.stock_id+'.csv'
 		self.scaler = MinMaxScaler()
 		#self.build_model()
-		self.load_data()
+		#self.load_data()
 
 	def get_new_data(self):
 		new_data=None;
-		self.data=pd.read_csv(self.data_file, index_col='date')
 		recent_date=max(self.data.index)
 		recent_date=datetime.strptime(recent_date, '%Y-%m-%d')
 		delta=timedelta(days=1)
@@ -40,16 +39,18 @@ class HjLstm:
 			new_data=ts.get_hist_data(self.stock_id, recent_date).sort_index(axis=0, ascending=True)
 		return new_data
 
-	def load_file(self):
+	def load_file(self, update=True):
 		if os.path.exists(self.data_file):
-			new_data=self.get_new_data();
-			if new_data is not None:
-				self.data=self.data.append(new_data)
+			self.data=pd.read_csv(self.data_file, index_col='date')
+			if update:
+				new_data=self.get_new_data()
+				if new_data is not None:
+					self.data=self.data.append(new_data)
+					self.data.to_csv(self.data_file)
 			
 		else:
 			self.data=ts.get_hist_data(self.stock_id).sort_index(axis=0, ascending=True)
-
-		self.data.to_csv(self.data_file)
+			self.data.to_csv(self.data_file)
 
 	def load_data(self):
 		self.load_file()
@@ -137,9 +138,12 @@ class HjLstm:
 		if x is None:
 			if type(self.model.get_layer(index=1)) is Dense:
 				self.test_x=np.reshape(self.test_x, self.test_x.shape[:-1])
-			self.predict_y=self.model.predict(self.test_x)
+				self.predict_y=self.model.predict(self.test_x)
 		else:
-			predict_y=self.model.predict(x)
+			x_rs=np.reshape(x, (len(x),1))
+			x_fit=self.scaler.fit_transform(x_rs)
+			x_rs=np.reshape(x_fit, (1, len(x_fit), 1))
+			predict_y=self.model.predict(x_rs)
 			return self.scaler.inverse_transform(predict_y)
 
 	def plot(self):
@@ -161,10 +165,9 @@ def train(lstms):
 		do_train(lstm)
 
 def predict(lstms, data):
-	data_x=np.reshape(data, (1, len(data), 1))
 	predict_ys=np.array([])
 	for lstm in lstms:
-		predict_y=lstm.predict(data_x)
+		predict_y=lstm.predict(data)
 		predict_ys=np.append(predict_ys, predict_y);
 	return np.reshape(predict_ys, (len(predict_ys), 1))
 
@@ -173,8 +176,8 @@ def plot(lstms, data):
 	predict_data=np.append(data, predict_ys)
 	new_data=lstms[0].get_new_data()
 	if new_data is not None:
-		data.append(new_data['close'])
-	plt.plot(np.reshape(data, (len(data), 1)), 'r-')
+		data_new=data.append(new_data['close'])
+	plt.plot(np.reshape(data_new, (len(data_new), 1)), 'r-')
 	plt.plot(np.reshape(predict_data, (len(predict_data), 1)), 'g:')
 	plt.show()
 	
@@ -254,14 +257,16 @@ if __name__ == '__main__':
 	#else:
 
 	lstms=[HjLstm(pre_day, i, stock_id, 'dnn_10_100_10_1') for i in range(1, dict_day+1)]
-	train(lstms)
+	#train(lstms)
+	lstms[0].load_file(False)
 	data=lstms[0].data['close'][-pre_day:]
 	#print data
 	#plot(lstms, data)
+	'''
 	print 'hejie***************'
 	prediction=fortune(lstms, data)
 	for i in prediction:
 		print i
 	print 'hejie***************'
-		#plot(lstms, data)
-		#print fortune(lstms, data)
+	'''
+	plot(lstms, data)
