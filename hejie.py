@@ -262,11 +262,9 @@ if __name__ == '__main__':
 	data=lstms[0].data['close'][-pre_day:]
 	#print data
 	#plot(lstms, data)
-	'''
 	print 'hejie***************'
 	prediction=fortune(lstms, data)
 	for i in prediction:
 		print i
 	print 'hejie***************'
-	'''
 	plot(lstms, data)
