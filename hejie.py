@@ -138,7 +138,7 @@ class HjLstm:
 		if x is None:
 			if type(self.model.get_layer(index=1)) is Dense:
 				self.test_x=np.reshape(self.test_x, self.test_x.shape[:-1])
-				self.predict_y=self.model.predict(self.test_x)
+			self.predict_y=self.model.predict(self.test_x)
 		else:
 			x_rs=np.reshape(x, (len(x),1))
 			x_fit=self.scaler.fit_transform(x_rs)
@@ -204,7 +204,7 @@ if __name__ == '__main__':
 	#end='2018-02-23'
 	#data_file=stock_id+'.csv'
 	pre_day=20
-	dict_day=7
+	dict_day=6
 	
 	'''
 	data=ts.get_hist_data(stock_id, start=start, end=end)
@@ -239,14 +239,14 @@ if __name__ == '__main__':
 
 	plt.show()
 	'''
-	
-	#nn=HjLstm(pre_day, dict_day, stock_id, 'dnn_10_100_10_1')
+	'''	
+	nn=HjLstm(pre_day, dict_day, stock_id, 'dnn_10_100_10_1')
 	#nn.load_file()
-	#nn.train_model()
-        #nn.plot()
+	nn.train_model()
+        nn.plot()
 	#print nn.test_y.shape
 	#print nn.model.predict(np.reshape(nn.test_x, nn.test_x.shape[:-1])).shape
-		
+	'''	
 	'''
 	if len(sys.argv)>1:
 		index=sys.argv[1]
@@ -255,7 +255,7 @@ if __name__ == '__main__':
 		#lstm.plot()
 	'''
 	#else:
-
+		
 	lstms=[HjLstm(pre_day, i, stock_id, 'dnn_10_100_10_1') for i in range(1, dict_day+1)]
 	#train(lstms)
 	lstms[0].load_file(False)
@@ -268,3 +268,4 @@ if __name__ == '__main__':
 		print i
 	print 'hejie***************'
 	plot(lstms, data)
+	
