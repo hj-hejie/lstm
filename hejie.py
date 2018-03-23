@@ -11,7 +11,7 @@ import multiprocessing as mp
 import tushare as ts
 from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
-from keras.layers import LSTM, Dense, Activation, Conv1D, MaxPooling1D, GlobalAveragePooling1D, Dropout
+from keras.layers import LSTM, Dense, Activation, Conv1D, MaxPooling1D, GlobalAveragePooling1D, Dropout, AveragePooling1D
 #from keras.utils import plot_model
 import pdb
 
@@ -101,6 +101,17 @@ class HjLstm:
 			self.model.add(GlobalAveragePooling1D())
 			self.model.add(Dense(1, activation='sigmoid'))
 
+		elif self.nn_layer=='conv1':
+                	self.model=Sequential()
+                	self.model.add(Conv1D(32, 4, activation='relu', input_shape=(None, 1)))
+			self.model.add(AveragePooling1D(strides=1))
+                        self.model.add(Conv1D(32, 4, activation='relu'))
+			self.model.add(AveragePooling1D(strides=1))
+                        self.model.add(Conv1D(32, 4, activation='relu'))
+			self.model.add(GlobalAveragePooling1D())
+                        self.model.add(Dense(1, activation='sigmoid'))
+
+
 		self.model.compile(loss='mse', optimizer='rmsprop')
 
 		if(os.path.exists(self.weights_file)):
@@ -116,7 +127,7 @@ class HjLstm:
 
 		if type(self.model.get_layer(index=1)) is Dense:
 			self.train_x=np.reshape(self.train_x, self.train_x.shape[:-1])
-		history=self.model.fit(self.train_x, self.train_y, batch_size=50, epochs=2000, validation_split=0.3)
+		history=self.model.fit(self.train_x, self.train_y, batch_size=50, epochs=100, validation_split=0.3)
 
 		self.model.save_weights(self.weights_file)
 
@@ -204,7 +215,7 @@ if __name__ == '__main__':
 	#end='2018-02-23'
 	#data_file=stock_id+'.csv'
 	pre_day=20
-	dict_day=6
+	dict_day=7
 	
 	'''
 	data=ts.get_hist_data(stock_id, start=start, end=end)
@@ -239,14 +250,15 @@ if __name__ == '__main__':
 
 	plt.show()
 	'''
-	'''	
-	nn=HjLstm(pre_day, dict_day, stock_id, 'dnn_10_100_10_1')
+		
+	#nn=HjLstm(pre_day, dict_day, stock_id, 'dnn_10_100_10_1')
+	nn=HjLstm(pre_day, dict_day, stock_id, 'conv1')
 	#nn.load_file()
 	nn.train_model()
-        nn.plot()
+        #nn.plot()
 	#print nn.test_y.shape
 	#print nn.model.predict(np.reshape(nn.test_x, nn.test_x.shape[:-1])).shape
-	'''	
+		
 	'''
 	if len(sys.argv)>1:
 		index=sys.argv[1]
@@ -255,7 +267,7 @@ if __name__ == '__main__':
 		#lstm.plot()
 	'''
 	#else:
-		
+	'''		
 	lstms=[HjLstm(pre_day, i, stock_id, 'dnn_10_100_10_1') for i in range(1, dict_day+1)]
 	#train(lstms)
 	lstms[0].load_file(False)
@@ -268,4 +280,4 @@ if __name__ == '__main__':
 		print i
 	print 'hejie***************'
 	plot(lstms, data)
-	
+	'''
