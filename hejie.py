@@ -101,7 +101,7 @@ class HjLstm:
 			self.model.add(GlobalAveragePooling1D())
 			self.model.add(Dense(1, activation='sigmoid'))
 
-		elif self.nn_layer=='conv2':
+		elif self.nn_layer=='conv3':
                 	self.model=Sequential()
                 	self.model.add(Conv1D(32, 6, activation='relu', input_shape=(None, 1)))
 			self.model.add(AveragePooling1D(strides=1))
@@ -116,7 +116,8 @@ class HjLstm:
                         self.model.add(Dense(1, activation='sigmoid'))
 
 
-		self.model.compile(loss='mse', optimizer='rmsprop')
+		#self.model.compile(loss='mse', optimizer='rmsprop')
+		self.model.compile(loss='msle', optimizer='nadam')
 
 		if(os.path.exists(self.weights_file)):
 			self.model.load_weights(self.weights_file)
@@ -256,7 +257,7 @@ if __name__ == '__main__':
 	'''
 		
 	#nn=HjLstm(pre_day, dict_day, stock_id, 'dnn_10_100_10_1')
-	nn=HjLstm(pre_day, dict_day, stock_id, 'conv2')
+	nn=HjLstm(pre_day, dict_day, stock_id, 'conv3')
 	#nn.load_file()
 	nn.train_model()
         #nn.plot()
