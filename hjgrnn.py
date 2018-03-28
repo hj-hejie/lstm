@@ -23,10 +23,9 @@ class HjGrnn:
 		self.stock_id=stock_id
 		self.pre_day=pre_day
 		self.dict_day=dict_day
-		self.split=0.3
+		self.split=0.7
 		self.data_file=self.stock_id+'.csv'
-		self.indexs={'close':{}}
-		#self.indexs={'close':{}, 'open':{}, 'high':{}, 'low':{}, 'volume':{}}
+		self.indexs={'close':{}, 'open':{}, 'high':{}, 'low':{}, 'volume':{}}
 		for i in self.indexs:
 			self.indexs[i]['scaler']=MinMaxScaler();
 
@@ -74,10 +73,15 @@ class HjGrnn:
 				self.train_all=reshaped_data[:, :self.pre_day];
 			else:
 				self.train_all=np.concatenate((self.train_all, reshaped_data[:, :self.pre_day]), axis=1)
-                self.train_x, self.test_x, self.train_y, self.test_y=train_test_split(self.train_all, self.train_y_close, test_size=self.split)
+                #self.train_x, self.test_x, self.train_y, self.test_y=train_test_split(self.train_all, self.train_y_close, test_size=1-self.split)
+                split=int(len(self.train_all)*self.split)
+                self.train_x=self.train_all[:split]
+                self.test_x=self.train_all[split:]
+                self.train_y=self.train_y_close[:split]
+                self.test_y=self.train_y_close[split:]
 
 	def build_model(self):
-                self.model=algorithms.GRNN(std=0.1)
+                self.model=algorithms.GRNN(std=0.06)
                 self.model.train(self.train_x, self.train_y)
 
 	def predict(self, xs=None):
@@ -156,8 +160,8 @@ if __name__ == '__main__':
 	dict_day=1
 	
 	nn=HjGrnn(pre_day, dict_day, stock_id)
-	advise(nn)
+	#advise(nn)
 	#nn.load_file()
 	#nn.load_data(False)
-        #print nn.predict()
+        print nn.predict()
         #nn.plot()
