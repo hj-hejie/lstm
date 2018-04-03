@@ -31,6 +31,8 @@ class HjLstm:
 		self.weights_file=self.stock_id+self.nn_layer+'_'+str(self.pre_day)+'_'+str(self.dict_day)+'.h5'
 		self.data_file=self.stock_id+'.csv'
 		self.scaler = MinMaxScaler()
+		self.close_index=2
+		self.data_col_no=13
 		#self.build_model()
 		#self.load_data()
 
@@ -60,11 +62,12 @@ class HjLstm:
 			self.data=ts.get_hist_data(self.stock_id).sort_index(axis=0, ascending=True)
 			self.data.to_csv(self.data_file)
 
-	def load_data(self):
-		self.load_file()
+	def load_data(self, update=True):
+		self.load_file(update)
 		seq_length=self.pre_day+self.dict_day
-		data=self.data['close']
-		data=np.reshape(data, (len(data),1))
+		#data=self.data['close']
+		data=self.data.values
+		data=np.reshape(data, (len(data), self.data_col_no))
 		data= self.scaler.fit_transform(data)
 		reshaped_data = []
 		for i in range(len(data) - seq_length+1):
@@ -72,7 +75,8 @@ class HjLstm:
 		reshaped_data = np.array(reshaped_data)
 		#x = reshaped_data[:, :-self.dict_day]
                 x = reshaped_data[:, :self.pre_day]
-		y = reshaped_data[:, -1]
+		#y = reshaped_data[:, -1]
+		y=reshaped_data[:,-1][:,self.close_index]
 		split = int(reshaped_data.shape[0] * self.split)
 		self.train_x = x[: split]
 		self.test_x = x[split:]
@@ -134,9 +138,9 @@ class HjLstm:
                         self.model.add(Dropout(0.5))
                         self.model.add(Dense(1, activation='linear'))
 
-		elif self.nn_layer=='lstm2':
+		elif self.nn_layer=='lstm3':
 			self.model=Sequential()
-			self.model.add(LSTM(100, input_shape=(None, 1), return_sequences=True))
+			self.model.add(LSTM(100, input_shape=(None, self.data_col_no), return_sequences=True))
 			self.model.add(LSTM(70, return_sequences=True))
 			self.model.add(LSTM(30))
                         self.model.add(Dense(1, activation='linear'))
@@ -182,20 +186,24 @@ class HjLstm:
 				self.test_x=np.reshape(self.test_x, self.test_x.shape[:-1])
 			self.predict_y=self.model.predict(self.test_x)
 		else:
-			x_rs=np.reshape(x, (len(x),1))
-			x_fit=self.scaler.fit_transform(x_rs)
-			x_rs=np.reshape(x_fit, (1, len(x_fit), 1))
+			x_fit=self.scaler.transform(x)
+			x_rs=np.reshape(x_fit, (1, len(x_fit), self.data_col_no))
 			predict_y=self.model.predict(x_rs)
-			return self.scaler.inverse_transform(predict_y)
+			return self.inverse_transform(predict_y)
 
 	def plot(self):
 
 		self.predict()
-		predict_y_inverse = self.scaler.inverse_transform(self.predict_y)
-		test_y_inverse = self.scaler.inverse_transform(self.test_y)
+		#predict_y_inverse = self.scaler.inverse_transform(self.predict_y)
+		#test_y_inverse = self.scaler.inverse_transform(self.test_y)
+		predict_y_inverse = self.inverse_transform(self.predict_y)
+		test_y_inverse = self.inverse_transform(self.test_y)
 		plt.plot(predict_y_inverse, 'g:')
 		plt.plot(test_y_inverse, 'r-')
 		plt.show()
+
+	def inverse_transform(self, y):
+		return y*self.scaler.data_range_[self.close_index]+self.scaler.data_min_[self.close_index]
 		
 
 def do_train(lstm):
@@ -210,16 +218,17 @@ def predict(lstms, data):
 	predict_ys=np.array([])
 	for lstm in lstms:
 		predict_y=lstm.predict(data)
-		predict_ys=np.append(predict_ys, predict_y);
+		predict_ys=np.append(predict_ys, predict_y)
 	return np.reshape(predict_ys, (len(predict_ys), 1))
 
 def plot(lstms, data):
 	predict_ys=predict(lstms, data)
-	predict_data=np.append(data, predict_ys)
+	data_close=data[:, lstms[0].close_index]
+	predict_data=np.append(data_close, predict_ys)
 	new_data=lstms[0].get_new_data()
 	if new_data is not None:
-		data_new=data.append(new_data['close'])
-	plt.plot(np.reshape(data_new, (len(data_new), 1)), 'r-')
+		data_close=np.append(data_close, new_data['close'])
+	plt.plot(np.reshape(data_close, (len(data_close), 1)), 'r-')
 	plt.plot(np.reshape(predict_data, (len(predict_data), 1)), 'g:')
 	plt.show()
 	
@@ -283,12 +292,12 @@ if __name__ == '__main__':
 	'''
 		
 	#nn=HjLstm(pre_day, dict_day, stock_id, 'dnn_10_100_10_1')
-	nn=HjLstm(pre_day, dict_day, stock_id, 'lstm2')
+	#nn=HjLstm(pre_day, dict_day, stock_id, 'lstm3')
 	#nn.load_file()
-	nn.train_model()
+	#nn.train_model()
         #nn.plot()
-	#print nn.test_y.shape
-	#print nn.model.predict(np.reshape(nn.test_x, nn.test_x.shape[:-1])).shape
+	#nn.load_data()
+	#print nn.predict(nn.data.values[-pre_day:]).shape
 		
 	'''
 	if len(sys.argv)>1:
@@ -298,13 +307,14 @@ if __name__ == '__main__':
 		#lstm.plot()
 	'''
 	#else:
-	'''		
-	lstms=[HjLstm(pre_day, i, stock_id, 'dnn_10_100_10_1') for i in range(1, dict_day+1)]
+			
+	lstms=[HjLstm(pre_day, i, stock_id, 'lstm3') for i in range(1, dict_day+1)]
 	#train(lstms)
-	lstms[0].load_file(False)
-	data=lstms[0].data['close'][-pre_day:]
+	lstms[0].load_data(False)
+	data=lstms[0].data.values[-pre_day:]
 	#print data
-	#plot(lstms, data)
+	plot(lstms, data)
+	'''
 	print 'hejie***************'
 	prediction=fortune(lstms, data)
 	for i in prediction:
