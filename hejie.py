@@ -11,7 +11,7 @@ import multiprocessing as mp
 import tushare as ts
 from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
-from keras.layers import LSTM, Dense, Activation, Conv1D, MaxPooling1D, GlobalAveragePooling1D, Dropout, AveragePooling1D
+from keras.layers import LSTM, Dense, Activation, Conv1D, MaxPooling1D, GlobalAveragePooling1D, Dropout, AveragePooling1D, Flatten
 from keras.callbacks import EarlyStopping
 #from keras.utils import plot_model
 import pdb
@@ -87,28 +87,33 @@ class HjLstm:
 			self.model.add(LSTM(100))
 			self.model.add(Dense(1, activation='linear'))
 
-		elif self.nn_layer=='nn_10_100_10_1':
+		elif self.nn_layer=='lstm1':
 			self.model=Sequential()
 			self.model.add(LSTM(50, input_shape=(None, 1), return_sequences=True))
 			self.model.add(LSTM(100))
                         self.model.add(Dense(1, activation='linear'))		
 			
 			
-		elif self.nn_layer=='xdnn_10_100_10_1':
+		elif self.nn_layer=='dnn1':
 			self.model = Sequential()
             		self.model.add(Dense(100, input_shape=(self.pre_day,), activation='relu'))
 			self.model.add(Dropout(0.5))
-			self.model.add(Dense(10, activation='relu'))
-			self.model.add(Dropout(0.5))	
+			self.model.add(Dense(70, activation='relu'))
+			self.model.add(Dropout(0.5))
+			self.model.add(Dense(30, activation='relu'))
+                        self.model.add(Dropout(0.5))
 			self.model.add(Dense(1, activation='linear'))
 
-		elif self.nn_layer=='dnn_10_100_10_1':
+		elif self.nn_layer=='conv1':
 			self.model=Sequential()
-			self.model.add(Conv1D(5, 5, activation='relu', input_shape=(None, 1)))
-                        self.model.add(MaxPooling1D())
-                        self.model.add(Conv1D(5, 5, activation='relu'))
-			self.model.add(GlobalAveragePooling1D())
-			self.model.add(Dense(1, activation='sigmoid'))
+			self.model.add(Conv1D(20, 5, activation='relu', input_shape=(None, 1)))
+                        self.model.add(AveragePooling1D(strides=1))
+			self.model.add(Dropout(0.5))
+                        self.model.add(Conv1D(10, 5, activation='relu'))
+			self.model.add(AveragePooling1D(strides=1))
+			self.model.add(Dropout(0.5))
+			self.model.add(Flatten())
+			self.model.add(Dense(1, activation='linear'))
 
 		elif self.nn_layer=='conv5':
                 	self.model=Sequential()
@@ -127,17 +132,17 @@ class HjLstm:
                         self.model.add(Conv1D(32, 6, activation='relu'))
 			self.model.add(GlobalAveragePooling1D())
                         self.model.add(Dropout(0.5))
-                        self.model.add(Dense(1, activation='sigmoid'))
+                        self.model.add(Dense(1, activation='linear'))
 
 		elif self.nn_layer=='lstm2':
 			self.model=Sequential()
-			self.model.add(LSTM(10, input_shape=(None, 1), return_sequences=True))
-			self.model.add(LSTM(20, return_sequences=True))
-			self.model.add(LSTM(10))
-                        self.model.add(Dense(1, activation='sigmoid'))		
+			self.model.add(LSTM(100, input_shape=(None, 1), return_sequences=True))
+			self.model.add(LSTM(70, return_sequences=True))
+			self.model.add(LSTM(30))
+                        self.model.add(Dense(1, activation='linear'))		
 
-		#self.model.compile(loss='mse', optimizer='rmsprop')
-		self.model.compile(loss='msle', optimizer='nadam')
+		self.model.compile(loss='mse', optimizer='rmsprop')
+		#self.model.compile(loss='msle', optimizer='nadam')
 		#self.model.compile(loss='binary_crossentropy', optimizer='nadam')
 
 		if(os.path.exists(self.weights_file)):
@@ -153,7 +158,7 @@ class HjLstm:
 
 		if type(self.model.get_layer(index=1)) is Dense:
 			self.train_x=np.reshape(self.train_x, self.train_x.shape[:-1])
-		history=self.model.fit(self.train_x, self.train_y, batch_size=50, epochs=300, validation_split=0.3)
+		history=self.model.fit(self.train_x, self.train_y, batch_size=50, epochs=1000, validation_split=0.3)
 
 		self.model.save_weights(self.weights_file)
 
@@ -241,7 +246,7 @@ if __name__ == '__main__':
 	#end='2018-02-23'
 	#data_file=stock_id+'.csv'
 	pre_day=50
-	dict_day=7
+	dict_day=1
 	
 	'''
 	data=ts.get_hist_data(stock_id, start=start, end=end)
@@ -278,7 +283,7 @@ if __name__ == '__main__':
 	'''
 		
 	#nn=HjLstm(pre_day, dict_day, stock_id, 'dnn_10_100_10_1')
-	nn=HjLstm(pre_day, dict_day, stock_id, 'conv5')
+	nn=HjLstm(pre_day, dict_day, stock_id, 'lstm2')
 	#nn.load_file()
 	nn.train_model()
         #nn.plot()
