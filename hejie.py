@@ -226,7 +226,7 @@ def plot(lstms, data):
 	data_close=data[:, lstms[0].close_index]
 	predict_data=np.append(data_close, predict_ys)
 	new_data=lstms[0].get_new_data()
-	if new_data is not None:
+	if not new_data.empty:
 		data_close=np.append(data_close, new_data['close'])
 	plt.plot(np.reshape(data_close, (len(data_close), 1)), 'r-')
 	plt.plot(np.reshape(predict_data, (len(predict_data), 1)), 'g:')
@@ -234,13 +234,14 @@ def plot(lstms, data):
 	
 def fortune(lstms, data):
 	predict_ys=predict(lstms, data)
+	data_close=data[:, lstms[0].close_index]
 	predict_ys_flat=predict_ys.flatten()
-	data_flat=np.repeat(data[-1], len(predict_ys_flat))
+	data_flat=np.repeat(data_close[-1], len(predict_ys_flat))
 	rate=(predict_ys_flat-data_flat)/data_flat
 	ask=np.repeat(0.7/(0.3-0.05), len(predict_ys_flat))
 	new_data=lstms[0].get_new_data()
 	real_data=None
-        if new_data is not None:
+        if not new_data.empty:
         	real_data=new_data['close']
 	return data_flat, predict_ys_flat, rate, ask, rate>ask, real_data
 	
@@ -313,12 +314,11 @@ if __name__ == '__main__':
 	lstms[0].load_data(False)
 	data=lstms[0].data.values[-pre_day:]
 	#print data
-	plot(lstms, data)
-	'''
+	#plot(lstms, data)
+	
 	print 'hejie***************'
 	prediction=fortune(lstms, data)
 	for i in prediction:
 		print i
 	print 'hejie***************'
-	plot(lstms, data)
-	'''
+	
