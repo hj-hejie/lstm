@@ -139,10 +139,10 @@ class HjLstm:
 			self.model.add(LSTM(100, input_shape=(None, 1), return_sequences=True))
 			self.model.add(LSTM(70, return_sequences=True))
 			self.model.add(LSTM(30))
-                        self.model.add(Dense(1, activation='linear'))		
+                        self.model.add(Dense(1, activation='linear'))
 
-		self.model.compile(loss='mse', optimizer='rmsprop')
-		#self.model.compile(loss='msle', optimizer='nadam')
+		#self.model.compile(loss='mse', optimizer='rmsprop')
+		self.model.compile(loss='msle', optimizer='nadam')
 		#self.model.compile(loss='binary_crossentropy', optimizer='nadam')
 
 		if(os.path.exists(self.weights_file)):
@@ -158,7 +158,7 @@ class HjLstm:
 
 		if type(self.model.get_layer(index=1)) is Dense:
 			self.train_x=np.reshape(self.train_x, self.train_x.shape[:-1])
-		history=self.model.fit(self.train_x, self.train_y, batch_size=50, epochs=1000, validation_split=0.3)
+		history=self.model.fit(self.train_x, self.train_y, batch_size=50, epochs=10, validation_split=0.3)
 
 		self.model.save_weights(self.weights_file)
 
