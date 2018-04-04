@@ -78,13 +78,12 @@ class HjLstm:
 		#y = reshaped_data[:, -1]
 		y=reshaped_data[:,-1][:,self.close_index]
 		split = int(reshaped_data.shape[0] * self.split)
-		self.train_x = x[: split]
+		self.train_x = x[:split]
 		self.test_x = x[split:]
-		self.train_y = y[: split]
+		self.train_y = y[:split]
 		self.test_y = y[split:]
 
 	def build_model(self):
-
 		if self.nn_layer=='_50_100':
 			self.model = Sequential()
 			self.model.add(LSTM(50, input_shape=(None, 1), return_sequences=True))
@@ -154,7 +153,6 @@ class HjLstm:
 		#plot_model(self.model)
 
 	def train_model(self, d=None):
-
 		if(not hasattr(self, 'data')):
 	                self.load_data()
 		if(not hasattr(self, 'model')):
@@ -175,7 +173,6 @@ class HjLstm:
 			d[self.nn_layer+'val_loss']=history.history['val_loss']
 
 	def predict(self, x=None):
-
 		if not hasattr(self, 'data') and x is None:
                         self.load_data()
                 if not hasattr(self, 'model'):
@@ -187,12 +184,12 @@ class HjLstm:
 			self.predict_y=self.model.predict(self.test_x)
 		else:
 			x_fit=self.scaler.transform(x)
+			#x_rs=np.reshape(x_fit, (1, len(x_fit), self.data_col_no))
 			x_rs=np.reshape(x_fit, (1, len(x_fit), self.data_col_no))
 			predict_y=self.model.predict(x_rs)
 			return self.inverse_transform(predict_y)
 
 	def plot(self):
-
 		self.predict()
 		#predict_y_inverse = self.scaler.inverse_transform(self.predict_y)
 		#test_y_inverse = self.scaler.inverse_transform(self.test_y)
@@ -228,8 +225,8 @@ def plot(lstms, data):
 	new_data=lstms[0].get_new_data()
 	if not new_data.empty:
 		data_close=np.append(data_close, new_data['close'])
-	plt.plot(np.reshape(data_close, (len(data_close), 1)), 'r-')
-	plt.plot(np.reshape(predict_data, (len(predict_data), 1)), 'g:')
+	plt.plot(np.reshape(data_close, (len(data_close), 1)), 'r.-')
+	plt.plot(np.reshape(predict_data, (len(predict_data), 1)), 'g.:')
 	plt.show()
 	
 def fortune(lstms, data):
@@ -244,6 +241,32 @@ def fortune(lstms, data):
         if not new_data.empty:
         	real_data=new_data['close']
 	return data_flat, predict_ys_flat, rate, ask, rate>ask, real_data
+
+def advise(lstm):
+	lstm.load_data(False)
+	data=lstm.data.values[-lstm.pre_day:]
+	data_pre=lstm.data.values[-lstm.pre_day-1:-1]
+	idx=lstm.close_index
+	data_last=lstm.data.values[-1][idx]
+	predict_last=lstm.predict(data_pre)[0][0]
+	predict=lstm.predict(data)[0][0]
+	
+	predict_new=data_last*(1+(predict-predict_last)/predict_last)	
+
+	logger.info('data_last:%s\n'\
+		'predict_last:%s\n'\
+		'predict:%s\n'\
+		'predict/predict_last:%s\n'\
+		'predict_new:%s\n'\
+		'predict/data_last:%s'\
+		%(data_last,
+			predict_last,
+			predict,
+			(predict-predict_last)/predict_last,
+			predict_new,
+			(predict-data_last)/data_last))
+
+	return predict_new
 	
 if __name__ == '__main__':
 	#stock_id='600848'
@@ -293,7 +316,8 @@ if __name__ == '__main__':
 	'''
 		
 	#nn=HjLstm(pre_day, dict_day, stock_id, 'dnn_10_100_10_1')
-	#nn=HjLstm(pre_day, dict_day, stock_id, 'lstm3')
+	nn=HjLstm(pre_day, dict_day, stock_id, 'lstm3')
+	advise(nn)
 	#nn.load_file()
 	#nn.train_model()
         #nn.plot()
@@ -308,17 +332,17 @@ if __name__ == '__main__':
 		#lstm.plot()
 	'''
 	#else:
-			
+	'''
 	lstms=[HjLstm(pre_day, i, stock_id, 'lstm3') for i in range(1, dict_day+1)]
 	#train(lstms)
 	lstms[0].load_data(False)
 	data=lstms[0].data.values[-pre_day:]
 	#print data
-	#plot(lstms, data)
-	
+	plot(lstms, data)
+		
 	print 'hejie***************'
 	prediction=fortune(lstms, data)
 	for i in prediction:
 		print i
 	print 'hejie***************'
-	
+	'''
