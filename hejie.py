@@ -61,13 +61,14 @@ class HjLstm:
 		else:
 			self.data=ts.get_hist_data(self.stock_id).sort_index(axis=0, ascending=True)
 			self.data.to_csv(self.data_file)
+		self.data_col_no=self.data.columns.size
 
 	def load_data(self, update=True):
 		self.load_file(update)
 		seq_length=self.pre_day+self.dict_day
 		#data=self.data['close']
 		data=self.data.values
-		data=np.reshape(data, (len(data), self.data_col_no))
+		#data=np.reshape(data, (len(data), self.data_col_no))
 		data= self.scaler.fit_transform(data)
 		reshaped_data = []
 		for i in range(len(data) - seq_length+1):
@@ -184,7 +185,6 @@ class HjLstm:
 			self.predict_y=self.model.predict(self.test_x)
 		else:
 			x_fit=self.scaler.transform(x)
-			#x_rs=np.reshape(x_fit, (1, len(x_fit), self.data_col_no))
 			x_rs=np.reshape(x_fit, (1, len(x_fit), self.data_col_no))
 			predict_y=self.model.predict(x_rs)
 			return self.inverse_transform(predict_y)
@@ -251,27 +251,30 @@ def advise(lstm):
 	predict_last=lstm.predict(data_pre)[0][0]
 	predict=lstm.predict(data)[0][0]
 	
-	predict_new=data_last*(1+(predict-predict_last)/predict_last)	
+	predict_new=data_last*(1+(predict-predict_last)/predict_last)
 
-	logger.info('data_last:%s\n'\
+	logger.info('\ndata_last:%s\n'\
 		'predict_last:%s\n'\
 		'predict:%s\n'\
 		'predict/predict_last:%s\n'\
 		'predict_new:%s\n'\
-		'predict/data_last:%s'\
+		'predict/data_last:%s\n'\
+		'kelly:%s'\
 		%(data_last,
 			predict_last,
 			predict,
 			(predict-predict_last)/predict_last,
 			predict_new,
-			(predict-data_last)/data_last))
+			(predict-data_last)/data_last,
+			0.5/(0.10+0.5/((predict-predict_last)/predict_last))))
 
 	return predict_new
 	
 if __name__ == '__main__':
 	#stock_id='600848'
+	stock_id='600354'
 	#stock_id='000001'
-	stock_id='hs300'
+	#stock_id='hs300'
 	#start='2011-01-01'
 	#start='1990-01-01'
 	#end='1990-01-05'
@@ -317,10 +320,10 @@ if __name__ == '__main__':
 		
 	#nn=HjLstm(pre_day, dict_day, stock_id, 'dnn_10_100_10_1')
 	nn=HjLstm(pre_day, dict_day, stock_id, 'lstm3')
-	advise(nn)
+	#advise(nn)
 	#nn.load_file()
-	#nn.train_model()
-        #nn.plot()
+	nn.train_model()
+        nn.plot()
 	#nn.load_data()
 	#print nn.predict(nn.data.values[-pre_day:]).shape
 		
