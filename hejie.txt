@@ -1,3 +1,9 @@
-0.0018 7.6130e-04
-8.91292055145
-0.0585416
+Using Theano backend.
+hejie.py[269] [2018-04-22 18:49:36,238] [INFO] 
+data_last:7.86
+predict_last:8.0743
+predict:7.93883
+predict/predict_last:-0.016778
+predict_new:7.72812511269
+predict/data_last:0.0100290672166
+kelly:-0.0168344651334
