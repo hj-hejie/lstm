@@ -322,6 +322,7 @@ if __name__ == '__main__':
 	nn=HjLstm(pre_day, dict_day, stock_id, 'lstm3')
 	#advise(nn)
 	#nn.load_file()
+	nn.load_data()
 	nn.train_model()
         #nn.plot()
 	#nn.load_data()
