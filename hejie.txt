@@ -61,3 +61,30 @@ predict/predict_last:0.0505646
 predict_new:6.83917563189
 predict/data_last:0.145192774759
 kelly:0.0500583767023
+Using Theano backend.
+hejie.py[269] [2018-04-27 17:46:48,893] [INFO] 
+data_last:6.51
+predict_last:8.61224
+predict:8.01859
+predict/predict_last:-0.0689317
+predict_new:6.06125459231
+predict/data_last:0.231733518445
+kelly:-0.069895306801
+Using Theano backend.
+hejie.py[270] [2018-04-27 20:38:48,760] [INFO] 
+data_last:6.51
+predict_last:7.35339
+predict:7.19742
+predict/predict_last:-0.0212112
+predict_new:6.37191540677
+predict/data_last:0.105594195529
+kelly:-0.0213015169724
+Using Theano backend.
+hejie.py[270] [2018-04-27 20:42:44,517] [INFO] 
+data_last:6.51
+predict_last:7.37072
+predict:7.17472
+predict/predict_last:-0.0265911
+predict_new:6.33689206157
+predict/data_last:0.102107790758
+kelly:-0.0267332543998

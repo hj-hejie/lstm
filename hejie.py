@@ -12,6 +12,7 @@ import tushare as ts
 from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
 from keras.layers import LSTM, Dense, Activation, Conv1D, MaxPooling1D, GlobalAveragePooling1D, Dropout, AveragePooling1D, Flatten
+from keras import regularizers
 from keras.callbacks import EarlyStopping
 #from keras.utils import plot_model
 import pdb
@@ -140,9 +141,9 @@ class HjLstm:
 
 		elif self.nn_layer=='lstm3':
 			self.model=Sequential()
-			self.model.add(LSTM(100, input_shape=(None, self.data_col_no), return_sequences=True))
-			self.model.add(LSTM(70, return_sequences=True))
-			self.model.add(LSTM(30))
+			self.model.add(LSTM(100, input_shape=(None, self.data_col_no), return_sequences=True, dropout=0.5, recurrent_dropout=0.5))
+			self.model.add(LSTM(70, return_sequences=True, dropout=0.5, recurrent_dropout=0.5))
+			self.model.add(LSTM(30, dropout=0.5, recurrent_dropout=0.5))
                         self.model.add(Dense(1, activation='linear'))
 
 		#self.model.compile(loss='mse', optimizer='rmsprop')
