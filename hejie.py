@@ -69,7 +69,7 @@ class HjLstm:
 		data=self.data_close
 		data=np.reshape(data, (-1, 1))
 		data=self.scaler.fit_transform(data)
-		#data=np.reshape(data, len(data))
+		data=np.reshape(data, len(data))
 		reshaped_data = []
 		for i in range(len(data) - seq_length+1):
 			reshaped_data.append(data[i: i + seq_length])
@@ -156,8 +156,8 @@ class HjLstm:
 			self.predict_y=self.model.predict(self.train_x)
 		else:
 			x_fit=self.scaler.transform(np.reshape(x, (-1, 1)))
-			#predict_y=self.model.predict(np.reshape(x_fit, (1, -1)))
-			predict_y=self.model.predict(np.reshape(x_fit, (1, -1, 1)))
+			predict_y=self.model.predict(np.reshape(x_fit, (1, -1)))
+			#predict_y=self.model.predict(np.reshape(x_fit, (1, -1, 1)))
 			return self.scaler.inverse_transform(predict_y)
 
 	def plot(self):
@@ -286,7 +286,7 @@ if __name__ == '__main__':
 	'''
 		
 	#nn=HjLstm(pre_day, dict_day, stock_id, 'dnn_10_100_10_1')
-	nn=HjLstm(pre_day, dict_day, stock_id, 'lstm3')
+	nn=HjLstm(pre_day, dict_day, stock_id)
 	#advise(nn)
 	#nn.load_file()
 	nn.load_data(False)
