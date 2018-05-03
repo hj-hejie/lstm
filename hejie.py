@@ -23,19 +23,17 @@ logger = logging.getLogger(__name__)
 
 class HjLstm: 
 
-	def __init__(self, pre_day, dict_day, stock_id, nn_layer='_50_100'):
+	def __init__(self, pre_day, dict_day, stock_id, nn_layer='dnn1'):
 		self.stock_id=stock_id
 		self.nn_layer=nn_layer
 		self.pre_day=pre_day
 		self.dict_day=dict_day
-		self.split=0.8
+		#self.split=0.8
 		self.weights_file=self.stock_id+self.nn_layer+'_'+str(self.pre_day)+'_'+str(self.dict_day)+'.h5'
 		self.data_file=self.stock_id+'.csv'
 		self.scaler = MinMaxScaler()
-		self.close_index=2
-		self.data_col_no=13
-		#self.build_model()
-		#self.load_data()
+		#self.close_index=2
+		#self.data_col_no=13
 
 	def get_new_data(self):
 		new_data=None;
@@ -63,61 +61,37 @@ class HjLstm:
 			self.data=ts.get_hist_data(self.stock_id).sort_index(axis=0, ascending=True)
 			self.data.to_csv(self.data_file)
 		self.data_col_no=self.data.columns.size
+		self.data_close=self.data['close']
 
 	def load_data(self, update=True):
 		self.load_file(update)
 		seq_length=self.pre_day+self.dict_day
-		#data=self.data['close']
-		data=self.data.values
-		#data=np.reshape(data, (len(data), self.data_col_no))
-		data= self.scaler.fit_transform(data)
+		data=self.data_close
+		data=np.reshape(data, (-1, 1))
+		data=self.scaler.fit_transform(data)
+		#data=np.reshape(data, len(data))
 		reshaped_data = []
 		for i in range(len(data) - seq_length+1):
 			reshaped_data.append(data[i: i + seq_length])
 		reshaped_data = np.array(reshaped_data)
-		#x = reshaped_data[:, :-self.dict_day]
-                x = reshaped_data[:, :self.pre_day]
-		#y = reshaped_data[:, -1]
-		y=reshaped_data[:,-1][:,self.close_index]
-		split = int(reshaped_data.shape[0] * self.split)
-		self.train_x = x[:split]
-		self.test_x = x[split:]
-		self.train_y = y[:split]
-		self.test_y = y[split:]
+                self.train_x = reshaped_data[:, :self.pre_day]
+		self.train_y = reshaped_data[:,-1]
+		#split = int(reshaped_data.shape[0] * self.split)
+		#self.train_x = x[:split]
+		#self.test_x = x[split:]
+		#self.train_y = y[:split]
+		#self.test_y = y[split:]
 
 	def build_model(self):
-		if self.nn_layer=='_50_100':
-			self.model = Sequential()
-			self.model.add(LSTM(50, input_shape=(None, 1), return_sequences=True))
-			self.model.add(LSTM(100))
-			self.model.add(Dense(1, activation='linear'))
 
-		elif self.nn_layer=='lstm1':
-			self.model=Sequential()
-			self.model.add(LSTM(50, input_shape=(None, 1), return_sequences=True))
-			self.model.add(LSTM(100))
-                        self.model.add(Dense(1, activation='linear'))		
-			
-			
-		elif self.nn_layer=='dnn1':
+		if self.nn_layer=='dnn1':
 			self.model = Sequential()
-            		self.model.add(Dense(100, input_shape=(self.pre_day,), activation='relu'))
+            		self.model.add(Dense(100, input_dim=self.pre_day, activation='relu'))
 			self.model.add(Dropout(0.5))
 			self.model.add(Dense(70, activation='relu'))
 			self.model.add(Dropout(0.5))
 			self.model.add(Dense(30, activation='relu'))
                         self.model.add(Dropout(0.5))
-			self.model.add(Dense(1, activation='linear'))
-
-		elif self.nn_layer=='conv1':
-			self.model=Sequential()
-			self.model.add(Conv1D(20, 5, activation='relu', input_shape=(None, 1)))
-                        self.model.add(AveragePooling1D(strides=1))
-			self.model.add(Dropout(0.5))
-                        self.model.add(Conv1D(10, 5, activation='relu'))
-			self.model.add(AveragePooling1D(strides=1))
-			self.model.add(Dropout(0.5))
-			self.model.add(Flatten())
 			self.model.add(Dense(1, activation='linear'))
 
 		elif self.nn_layer=='conv5':
@@ -141,7 +115,7 @@ class HjLstm:
 
 		elif self.nn_layer=='lstm3':
 			self.model=Sequential()
-			self.model.add(LSTM(100, input_shape=(None, self.data_col_no), return_sequences=True, dropout=0.5, recurrent_dropout=0.5))
+			self.model.add(LSTM(100, input_shape=(None, 1), return_sequences=True, dropout=0.5, recurrent_dropout=0.5))
 			self.model.add(LSTM(70, return_sequences=True, dropout=0.5, recurrent_dropout=0.5))
 			self.model.add(LSTM(30, dropout=0.5, recurrent_dropout=0.5))
                         self.model.add(Dense(1, activation='linear'))
@@ -160,9 +134,7 @@ class HjLstm:
 		if(not hasattr(self, 'model')):
 			self.build_model()
 
-		if type(self.model.get_layer(index=1)) is Dense:
-			self.train_x=np.reshape(self.train_x, self.train_x.shape[:-1])
-		history=self.model.fit(self.train_x, self.train_y, batch_size=50, epochs=10, validation_split=0.3)
+		history=self.model.fit(self.train_x, self.train_y, batch_size=50, epochs=10, validation_split=0.3, callbacks=[EarlyStopping('val_loss')])
 
 		self.model.save_weights(self.weights_file)
 
@@ -181,23 +153,19 @@ class HjLstm:
                 	self.build_model()
 
 		if x is None:
-			if type(self.model.get_layer(index=1)) is Dense:
-				self.test_x=np.reshape(self.test_x, self.test_x.shape[:-1])
-			self.predict_y=self.model.predict(self.test_x)
+			self.predict_y=self.model.predict(self.train_x)
 		else:
-			x_fit=self.scaler.transform(x)
-			x_rs=np.reshape(x_fit, (1, len(x_fit), self.data_col_no))
-			predict_y=self.model.predict(x_rs)
-			return self.inverse_transform(predict_y)
+			x_fit=self.scaler.transform(np.reshape(x, (-1, 1)))
+			#predict_y=self.model.predict(np.reshape(x_fit, (1, -1)))
+			predict_y=self.model.predict(np.reshape(x_fit, (1, -1, 1)))
+			return self.scaler.inverse_transform(predict_y)
 
 	def plot(self):
 		self.predict()
-		#predict_y_inverse = self.scaler.inverse_transform(self.predict_y)
-		#test_y_inverse = self.scaler.inverse_transform(self.test_y)
-		predict_y_inverse = self.inverse_transform(self.predict_y)
-		test_y_inverse = self.inverse_transform(self.test_y)
+		predict_y_inverse = self.scaler.inverse_transform(self.predict_y)
+		train_y_inverse = self.scaler.inverse_transform(np.reshape(self.train_y, (-1, 1)))
 		plt.plot(predict_y_inverse, 'g:')
-		plt.plot(test_y_inverse, 'r-')
+		plt.plot(train_y_inverse, 'r-')
 		plt.show()
 
 	def inverse_transform(self, y):
@@ -245,13 +213,11 @@ def fortune(lstms, data):
 
 def advise(lstm):
 	lstm.load_data(False)
-	data=lstm.data.values[-lstm.pre_day:]
-	data_pre=lstm.data.values[-lstm.pre_day-1:-1]
-	idx=lstm.close_index
-	data_last=lstm.data.values[-1][idx]
+	data=lstm.data_close[-lstm.pre_day:]
+	data_pre=lstm.data_close[-lstm.pre_day-1:-1]
+	data_last=lstm.data_close[-1]
 	predict_last=lstm.predict(data_pre)[0][0]
 	predict=lstm.predict(data)[0][0]
-	
 	predict_new=data_last*(1+(predict-predict_last)/predict_last)
 
 	logger.info('\ndata_last:%s\n'\
