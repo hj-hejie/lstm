@@ -97,3 +97,25 @@ predict/predict_last:-0.0317688
 predict_new:6.30318480436
 predict/data_last:0.0919405384913
 kelly:-0.0319719899097
+Using Theano backend.
+/usr/local/lib/python2.7/dist-packages/numpy/core/fromnumeric.py:57: FutureWarning: reshape is deprecated and will raise in a subsequent release. Please use .values.reshape(...) instead
+  return getattr(obj, method)(*args, **kwds)
+hejie.py[236] [2018-05-03 17:34:33,715] [INFO] 
+data_last:6.44
+predict_last:5.58081
+predict:5.81449
+predict/predict_last:0.0418724
+predict_new:6.709658501
+predict/data_last:-0.0971283883041
+kelly:0.0415246900412
+Using Theano backend.
+/usr/local/lib/python2.7/dist-packages/numpy/core/fromnumeric.py:57: FutureWarning: reshape is deprecated and will raise in a subsequent release. Please use .values.reshape(...) instead
+  return getattr(obj, method)(*args, **kwds)
+hejie.py[236] [2018-05-03 17:37:01,058] [INFO] 
+data_last:6.44
+predict_last:5.25581
+predict:5.51761
+predict/predict_last:0.0498114
+predict_new:6.7607852751
+predict/data_last:-0.143227731219
+kelly:0.049320038306

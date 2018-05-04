@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 class HjLstm: 
 
-	def __init__(self, pre_day, dict_day, stock_id, nn_layer='dnn1'):
+	def __init__(self, pre_day, dict_day, stock_id, nn_layer):
 		self.stock_id=stock_id
 		self.nn_layer=nn_layer
 		self.pre_day=pre_day
@@ -60,22 +60,48 @@ class HjLstm:
 		else:
 			self.data=ts.get_hist_data(self.stock_id).sort_index(axis=0, ascending=True)
 			self.data.to_csv(self.data_file)
-		self.data_col_no=self.data.columns.size
+		#self.data_col_no=self.data.columns.size
 		self.data_close=self.data['close']
+		self.data_open=self.data['open']
+		self.data_high=self.data['high']
+		self.data_low=self.data['low']
+		self.data_vol=self.data['volume']
 
 	def load_data(self, update=True):
 		self.load_file(update)
+		self.build_data(self.data_close, 'train_x', 'train_y', self.scaler)
+		self.build_data(self.data_open, 'train_open_x', 'train_open_y', MinMaxScaler())
+		self.build_data(self.data_high, 'train_high_x', 'train_high_y', MinMaxScaler())
+		self.build_data(self.data_low, 'train_low_x', 'train_low_y', MinMaxScaler())
+		self.build_data(self.data_vol, 'train_vol_x', 'train_vol_y', MinMaxScaler())
+		#seq_length=self.pre_day+self.dict_day
+		#data=self.data_close
+		#data=np.reshape(data, (-1, 1))
+		#data=self.scaler.fit_transform(data)
+		#data=np.reshape(data, len(data))
+		#reshaped_data = []
+		#for i in range(len(data) - seq_length+1):
+		#	reshaped_data.append(data[i: i + seq_length])
+		#reshaped_data = np.array(reshaped_data)
+                #self.train_x = reshaped_data[:, :self.pre_day]
+		#self.train_y = reshaped_data[:,-1]
+		#split = int(reshaped_data.shape[0] * self.split)
+		#self.train_x = x[:split]
+		#self.test_x = x[split:]
+		#self.train_y = y[:split]
+		#self.test_y = y[split:]
+
+	def build_data(self, data, x, y, scaler):
 		seq_length=self.pre_day+self.dict_day
-		data=self.data_close
 		data=np.reshape(data, (-1, 1))
-		data=self.scaler.fit_transform(data)
+		data=scaler.fit_transform(data)
 		data=np.reshape(data, len(data))
 		reshaped_data = []
 		for i in range(len(data) - seq_length+1):
 			reshaped_data.append(data[i: i + seq_length])
 		reshaped_data = np.array(reshaped_data)
-                self.train_x = reshaped_data[:, :self.pre_day]
-		self.train_y = reshaped_data[:,-1]
+                setattr(self, x, reshaped_data[:, :self.pre_day])
+		setattr(self, y, reshaped_data[:,-1])
 		#split = int(reshaped_data.shape[0] * self.split)
 		#self.train_x = x[:split]
 		#self.test_x = x[split:]
@@ -93,6 +119,26 @@ class HjLstm:
 			self.model.add(Dense(30, activation='relu'))
                         self.model.add(Dropout(0.5))
 			self.model.add(Dense(1, activation='linear'))
+
+		elif self.nn_layer=='dnn2':
+			self.model = Sequential()
+            		self.model.add(Dense(370, input_dim=self.pre_day*5, activation='relu'))
+			self.model.add(Dropout(0.5))
+			self.model.add(Dense(330, activation='relu'))
+			self.model.add(Dropout(0.5))
+			self.model.add(Dense(270, activation='relu'))
+			self.model.add(Dropout(0.5))
+			self.model.add(Dense(230, activation='relu'))
+			self.model.add(Dropout(0.5))
+			self.model.add(Dense(170, activation='relu'))
+			self.model.add(Dropout(0.5))
+			self.model.add(Dense(130, activation='relu'))
+			self.model.add(Dropout(0.5))
+			self.model.add(Dense(70, activation='relu'))
+			self.model.add(Dropout(0.5))
+			self.model.add(Dense(30, activation='relu'))
+			self.model.add(Dropout(0.5))
+			self.model.add(Dense(1, activation='sigmoid'))
 
 		elif self.nn_layer=='conv5':
                 	self.model=Sequential()
@@ -134,7 +180,8 @@ class HjLstm:
 		if(not hasattr(self, 'model')):
 			self.build_model()
 
-		history=self.model.fit(self.train_x, self.train_y, batch_size=50, epochs=10, validation_split=0.3, callbacks=[EarlyStopping('val_loss')])
+		#history=self.model.fit(self.train_x, self.train_y, batch_size=50, epochs=1000, validation_split=0.3, callbacks=[EarlyStopping('val_loss')])
+		history=self.model.fit(np.concatenate((self.train_x, self.train_open_x, self.train_high_x, self.train_low_x, self.train_vol_x), axis=1), self.train_y, batch_size=50, epochs=10000, validation_split=0.3)
 
 		self.model.save_weights(self.weights_file)
 
@@ -248,7 +295,7 @@ if __name__ == '__main__':
 	#start='2018-02-11'
 	#end='2018-02-23'
 	#data_file=stock_id+'.csv'
-	pre_day=50
+	pre_day=70
 	dict_day=1
 	
 	'''
@@ -286,7 +333,7 @@ if __name__ == '__main__':
 	'''
 		
 	#nn=HjLstm(pre_day, dict_day, stock_id, 'dnn_10_100_10_1')
-	nn=HjLstm(pre_day, dict_day, stock_id)
+	nn=HjLstm(pre_day, dict_day, stock_id, 'dnn2')
 	#advise(nn)
 	#nn.load_file()
 	nn.load_data(False)
