@@ -107,11 +107,11 @@ class HjLstm:
 
 		elif self.nn_layer=='dnn2':
 			self.model = Sequential()
-            		self.model.add(Dense(370, input_dim=self.pre_day*len(self.indexs), activation='sigmoid'))
+            		self.model.add(Dense(170, input_dim=self.pre_day*len(self.indexs), activation='sigmoid'))
 			self.model.add(Dropout(0.5))
-			self.model.add(Dense(270, activation='sigmoid'))
+			self.model.add(Dense(100, activation='sigmoid'))
 			self.model.add(Dropout(0.5))
-			self.model.add(Dense(170, activation='sigmoid'))
+			self.model.add(Dense(30, activation='sigmoid'))
 			self.model.add(Dropout(0.5))
 			self.model.add(Dense(1, activation='sigmoid'))
 
@@ -155,8 +155,8 @@ class HjLstm:
 		if(not hasattr(self, 'model')):
 			self.build_model()
 
-		#history=self.model.fit(self.train_x, self.train_y, batch_size=50, epochs=1000, validation_split=0.3, callbacks=[EarlyStopping('val_loss')])
-		history=self.model.fit(self.train_all, self.train_y_close, batch_size=50, epochs=10000, validation_split=0.3)
+		history=self.model.fit(self.train_all, self.train_y_close, batch_size=50, epochs=1000, validation_split=0.3, callbacks=[EarlyStopping('val_loss')])
+		#history=self.model.fit(self.train_all, self.train_y_close, batch_size=50, epochs=50000, validation_split=0.3)
 
 		self.model.save_weights(self.weights_file)
 
@@ -182,7 +182,6 @@ class HjLstm:
 				x_fit=self.indexs[i]['scaler'].transform(np.reshape(x[i], (-1, 1)))
 				x_fit=np.reshape(x_fit, (1, -1))
 				x_all= (x_fit if x_all is None else np.concatenate((x_all, x_fit), axis=1))
-			pdb.set_trace()
 			predict_y=self.model.predict(x_all)
 			#predict_y=self.model.predict(np.reshape(x_fit, (1, -1, 1)))
 			return self.indexs['close']['scaler'].inverse_transform(predict_y)
@@ -278,7 +277,7 @@ if __name__ == '__main__':
 	#start='2018-02-11'
 	#end='2018-02-23'
 	#data_file=stock_id+'.csv'
-	pre_day=70
+	pre_day=30
 	dict_day=1
 	
 	'''

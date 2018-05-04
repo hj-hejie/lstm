@@ -119,3 +119,14 @@ predict/predict_last:0.0498114
 predict_new:6.7607852751
 predict/data_last:-0.143227731219
 kelly:0.049320038306
+Using Theano backend.
+/usr/local/lib/python2.7/dist-packages/numpy/core/fromnumeric.py:57: FutureWarning: reshape is deprecated and will raise in a subsequent release. Please use .values.reshape(...) instead
+  return getattr(obj, method)(*args, **kwds)
+hejie.py[265] [2018-05-03 23:57:46,111] [INFO] 
+data_last:6.44
+predict_last:6.66824
+predict:6.34395
+predict/predict_last:-0.048631
+predict_new:6.12681627989
+predict/data_last:-0.0149139617541
+kelly:-0.0491086531441
