@@ -31,7 +31,9 @@ class HjLstm:
 		#self.split=0.8
 		self.weights_file=self.stock_id+self.nn_layer+'_'+str(self.pre_day)+'_'+str(self.dict_day)+'.h5'
 		self.data_file=self.stock_id+'.csv'
-		self.scaler = MinMaxScaler()
+		self.indexs={'close':{}, 'open':{}, 'high':{}, 'low':{}, 'volume':{}}
+		for i in self.indexs:
+			self.indexs[i]['scaler']=MinMaxScaler();
 		#self.close_index=2
 		#self.data_col_no=13
 
@@ -61,52 +63,35 @@ class HjLstm:
 			self.data=ts.get_hist_data(self.stock_id).sort_index(axis=0, ascending=True)
 			self.data.to_csv(self.data_file)
 		#self.data_col_no=self.data.columns.size
-		self.data_close=self.data['close']
-		self.data_open=self.data['open']
-		self.data_high=self.data['high']
-		self.data_low=self.data['low']
-		self.data_vol=self.data['volume']
+		#self.data_close=self.data['close']
+		#self.data_open=self.data['open']
+		#self.data_high=self.data['high']
+		#self.data_low=self.data['low']
+		#self.data_vol=self.data['volume']
 
 	def load_data(self, update=True):
 		self.load_file(update)
-		self.build_data(self.data_close, 'train_x', 'train_y', self.scaler)
-		self.build_data(self.data_open, 'train_open_x', 'train_open_y', MinMaxScaler())
-		self.build_data(self.data_high, 'train_high_x', 'train_high_y', MinMaxScaler())
-		self.build_data(self.data_low, 'train_low_x', 'train_low_y', MinMaxScaler())
-		self.build_data(self.data_vol, 'train_vol_x', 'train_vol_y', MinMaxScaler())
-		#seq_length=self.pre_day+self.dict_day
-		#data=self.data_close
-		#data=np.reshape(data, (-1, 1))
-		#data=self.scaler.fit_transform(data)
-		#data=np.reshape(data, len(data))
-		#reshaped_data = []
-		#for i in range(len(data) - seq_length+1):
-		#	reshaped_data.append(data[i: i + seq_length])
-		#reshaped_data = np.array(reshaped_data)
-                #self.train_x = reshaped_data[:, :self.pre_day]
-		#self.train_y = reshaped_data[:,-1]
-		#split = int(reshaped_data.shape[0] * self.split)
-		#self.train_x = x[:split]
-		#self.test_x = x[split:]
-		#self.train_y = y[:split]
-		#self.test_y = y[split:]
-
-	def build_data(self, data, x, y, scaler):
 		seq_length=self.pre_day+self.dict_day
-		data=np.reshape(data, (-1, 1))
-		data=scaler.fit_transform(data)
-		data=np.reshape(data, len(data))
-		reshaped_data = []
-		for i in range(len(data) - seq_length+1):
-			reshaped_data.append(data[i: i + seq_length])
-		reshaped_data = np.array(reshaped_data)
-                setattr(self, x, reshaped_data[:, :self.pre_day])
-		setattr(self, y, reshaped_data[:,-1])
-		#split = int(reshaped_data.shape[0] * self.split)
-		#self.train_x = x[:split]
-		#self.test_x = x[split:]
-		#self.train_y = y[:split]
-		#self.test_y = y[split:]
+		for j in self.indexs:
+			data=self.data[j]
+			data=np.reshape(data, (-1, 1))
+			data=self.indexs[j]['scaler'].fit_transform(data)
+			data=np.reshape(data, len(data))
+			reshaped_data = []
+			for i in range(len(data) - seq_length+1):
+				reshaped_data.append(data[i: i + seq_length])
+			reshaped_data = np.array(reshaped_data)
+                	setattr(self, 'train_x_'+j, reshaped_data[:, :self.pre_day])
+			setattr(self, 'train_y_'+j, reshaped_data[:,-1])
+			if not hasattr(self, 'train_all'):
+				self.train_all=reshaped_data[:, :self.pre_day];
+			else:
+				self.train_all=np.concatenate((self.train_all, reshaped_data[:, :self.pre_day]), axis=1)
+			#split = int(reshaped_data.shape[0] * self.split)
+			#self.train_x = x[:split]
+			#self.test_x = x[split:]
+			#self.train_y = y[:split]
+			#self.test_y = y[split:]
 
 	def build_model(self):
 
@@ -122,21 +107,11 @@ class HjLstm:
 
 		elif self.nn_layer=='dnn2':
 			self.model = Sequential()
-            		self.model.add(Dense(370, input_dim=self.pre_day*5, activation='relu'))
+            		self.model.add(Dense(370, input_dim=self.pre_day*len(self.indexs), activation='sigmoid'))
 			self.model.add(Dropout(0.5))
-			self.model.add(Dense(330, activation='relu'))
+			self.model.add(Dense(270, activation='sigmoid'))
 			self.model.add(Dropout(0.5))
-			self.model.add(Dense(270, activation='relu'))
-			self.model.add(Dropout(0.5))
-			self.model.add(Dense(230, activation='relu'))
-			self.model.add(Dropout(0.5))
-			self.model.add(Dense(170, activation='relu'))
-			self.model.add(Dropout(0.5))
-			self.model.add(Dense(130, activation='relu'))
-			self.model.add(Dropout(0.5))
-			self.model.add(Dense(70, activation='relu'))
-			self.model.add(Dropout(0.5))
-			self.model.add(Dense(30, activation='relu'))
+			self.model.add(Dense(170, activation='sigmoid'))
 			self.model.add(Dropout(0.5))
 			self.model.add(Dense(1, activation='sigmoid'))
 
@@ -181,7 +156,7 @@ class HjLstm:
 			self.build_model()
 
 		#history=self.model.fit(self.train_x, self.train_y, batch_size=50, epochs=1000, validation_split=0.3, callbacks=[EarlyStopping('val_loss')])
-		history=self.model.fit(np.concatenate((self.train_x, self.train_open_x, self.train_high_x, self.train_low_x, self.train_vol_x), axis=1), self.train_y, batch_size=50, epochs=10000, validation_split=0.3)
+		history=self.model.fit(self.train_all, self.train_y_close, batch_size=50, epochs=10000, validation_split=0.3)
 
 		self.model.save_weights(self.weights_file)
 
@@ -200,17 +175,22 @@ class HjLstm:
                 	self.build_model()
 
 		if x is None:
-			self.predict_y=self.model.predict(self.train_x)
+			self.predict_y=self.model.predict(self.train_all)
 		else:
-			x_fit=self.scaler.transform(np.reshape(x, (-1, 1)))
-			predict_y=self.model.predict(np.reshape(x_fit, (1, -1)))
+			x_all=None
+			for i in x:
+				x_fit=self.indexs[i]['scaler'].transform(np.reshape(x[i], (-1, 1)))
+				x_fit=np.reshape(x_fit, (1, -1))
+				x_all= (x_fit if x_all is None else np.concatenate((x_all, x_fit), axis=1))
+			pdb.set_trace()
+			predict_y=self.model.predict(x_all)
 			#predict_y=self.model.predict(np.reshape(x_fit, (1, -1, 1)))
-			return self.scaler.inverse_transform(predict_y)
+			return self.indexs['close']['scaler'].inverse_transform(predict_y)
 
 	def plot(self):
 		self.predict()
-		predict_y_inverse = self.scaler.inverse_transform(self.predict_y)
-		train_y_inverse = self.scaler.inverse_transform(np.reshape(self.train_y, (-1, 1)))
+		predict_y_inverse = self.indexs['close']['scaler'].inverse_transform(self.predict_y)
+		train_y_inverse = self.indexs['close']['scaler'].inverse_transform(np.reshape(self.train_y_close, (-1, 1)))
 		plt.plot(predict_y_inverse, 'g:')
 		plt.plot(train_y_inverse, 'r-')
 		plt.show()
@@ -260,9 +240,12 @@ def fortune(lstms, data):
 
 def advise(lstm):
 	lstm.load_data(False)
-	data=lstm.data_close[-lstm.pre_day:]
-	data_pre=lstm.data_close[-lstm.pre_day-1:-1]
-	data_last=lstm.data_close[-1]
+	data={}
+	data_pre={}
+	for i in lstm.indexs:
+		data[i]=lstm.data[i][-lstm.pre_day:]
+		data_pre[i]=lstm.data[i][-lstm.pre_day-1:-1]
+	data_last=lstm.data['close'][-1]
 	predict_last=lstm.predict(data_pre)[0][0]
 	predict=lstm.predict(data)[0][0]
 	predict_new=data_last*(1+(predict-predict_last)/predict_last)
