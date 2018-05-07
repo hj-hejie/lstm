@@ -130,3 +130,42 @@ predict/predict_last:-0.048631
 predict_new:6.12681627989
 predict/data_last:-0.0149139617541
 kelly:-0.0491086531441
+/usr/local/lib/python2.7/dist-packages/h5py/__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+Using Theano backend.
+WARNING (theano.tensor.blas): Using NumPy C-API based implementation for BLAS functions.
+/usr/local/lib/python2.7/dist-packages/numpy/core/fromnumeric.py:52: FutureWarning: reshape is deprecated and will raise in a subsequent release. Please use .values.reshape(...) instead
+  return getattr(obj, method)(*args, **kwds)
+hejie.py[267] [2018-05-06 20:16:43,664] [INFO] 
+data_last:6.66
+predict_last:6.5596886
+predict:6.518121
+predict/predict_last:-0.006336856
+predict_new:6.617796537922695
+predict/data_last:-0.021303188335430177
+kelly:-0.006344897508345389
+/usr/local/lib/python2.7/dist-packages/h5py/__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+Using Theano backend.
+WARNING (theano.tensor.blas): Using NumPy C-API based implementation for BLAS functions.
+/usr/local/lib/python2.7/dist-packages/numpy/core/fromnumeric.py:52: FutureWarning: reshape is deprecated and will raise in a subsequent release. Please use .values.reshape(...) instead
+  return getattr(obj, method)(*args, **kwds)
+hejie.py[267] [2018-05-06 20:17:33,862] [INFO] 
+data_last:6.66
+predict_last:6.5596886
+predict:6.518121
+predict/predict_last:-0.006336856
+predict_new:6.617796537922695
+predict/data_last:-0.021303188335430177
+kelly:-0.006344897508345389
+WARNING (theano.tensor.blas): Using NumPy C-API based implementation for BLAS functions.
+/usr/local/lib/python2.7/dist-packages/numpy/core/fromnumeric.py:52: FutureWarning: reshape is deprecated and will raise in a subsequent release. Please use .values.reshape(...) instead
+  return getattr(obj, method)(*args, **kwds)
+hjgrnn.py[146] [2018-05-06 20:31:38,606] [INFO] 
+data_last:6.66
+predict_last:7.14
+predict:6.96
+predict/predict_last:-0.025210084033613408
+predict_new:6.4921008403361355
+predict/data_last:0.045045045045045015
+kelly:-0.0253378378378378

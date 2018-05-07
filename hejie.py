@@ -190,8 +190,10 @@ class HjLstm:
 		self.predict()
 		predict_y_inverse = self.indexs['close']['scaler'].inverse_transform(self.predict_y)
 		train_y_inverse = self.indexs['close']['scaler'].inverse_transform(np.reshape(self.train_y_close, (-1, 1)))
-		plt.plot(predict_y_inverse, 'g:')
-		plt.plot(train_y_inverse, 'r-')
+		plt.plot(predict_y_inverse, 'r-')
+		plt.plot(predict_y_inverse, 'ro')
+		plt.plot(train_y_inverse, 'go')
+		plt.plot(train_y_inverse, 'g:')
 		plt.show()
 
 	def inverse_transform(self, y):

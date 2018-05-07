@@ -111,8 +111,10 @@ class HjGrnn:
 		self.predict()
 		predict_y_inverse = self.indexs['close']['scaler'].inverse_transform(self.predict_y)
 		test_y_inverse = self.indexs['close']['scaler'].inverse_transform(np.reshape(self.test_y, (-1, 1)))
-		plt.plot(predict_y_inverse, 'g:')
-		plt.plot(test_y_inverse, 'r-')
+		plt.plot(predict_y_inverse, 'r-')
+		plt.plot(predict_y_inverse, 'ro')
+		plt.plot(test_y_inverse, 'go')
+		plt.plot(test_y_inverse, 'g:')
 		plt.show()
 
 def advise(lstm):
@@ -160,8 +162,8 @@ if __name__ == '__main__':
 	dict_day=1
 	
 	nn=HjGrnn(pre_day, dict_day, stock_id)
-	#advise(nn)
+	advise(nn)
 	#nn.load_file()
 	#nn.load_data(False)
-        print nn.predict()
+        #print nn.predict()
         #nn.plot()
