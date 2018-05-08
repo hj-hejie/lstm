@@ -107,11 +107,13 @@ class HjLstm:
 
 		elif self.nn_layer=='dnn2':
 			self.model = Sequential()
-            		self.model.add(Dense(170, input_dim=self.pre_day*len(self.indexs), activation='sigmoid'))
+            		self.model.add(Dense(512, input_dim=self.pre_day*len(self.indexs), activation='sigmoid'))
 			self.model.add(Dropout(0.5))
-			self.model.add(Dense(100, activation='sigmoid'))
+			self.model.add(Dense(256, activation='sigmoid'))
 			self.model.add(Dropout(0.5))
-			self.model.add(Dense(30, activation='sigmoid'))
+			self.model.add(Dense(128, activation='sigmoid'))
+			self.model.add(Dropout(0.5))
+			self.model.add(Dense(64, activation='sigmoid'))
 			self.model.add(Dropout(0.5))
 			self.model.add(Dense(1, activation='sigmoid'))
 
@@ -155,8 +157,8 @@ class HjLstm:
 		if(not hasattr(self, 'model')):
 			self.build_model()
 
-		history=self.model.fit(self.train_all, self.train_y_close, batch_size=50, epochs=1000, validation_split=0.3, callbacks=[EarlyStopping('val_loss')])
-		#history=self.model.fit(self.train_all, self.train_y_close, batch_size=50, epochs=50000, validation_split=0.3)
+		#history=self.model.fit(self.train_all, self.train_y_close, batch_size=50, epochs=1000, validation_split=0.3, callbacks=[EarlyStopping('val_loss')])
+		history=self.model.fit(self.train_all, self.train_y_close, batch_size=50, epochs=128, validation_split=0.3)
 
 		self.model.save_weights(self.weights_file)
 
@@ -279,7 +281,7 @@ if __name__ == '__main__':
 	#start='2018-02-11'
 	#end='2018-02-23'
 	#data_file=stock_id+'.csv'
-	pre_day=30
+	pre_day=64
 	dict_day=1
 	
 	'''
