@@ -32,12 +32,12 @@ class RBFLayer(Layer):
 
 	def build(self, input_shape):
 		self.means_K=self.add_weight(name='means', shape=(self.output_dim, input_shape[1]), initializer=Constant(self.means), trainable=False)
-		self.sigmas_K=self.add_weight(name='sigmas', shape=(self.output_dim, ), initializer=Constant(self.sigmas), trainable=False)
+		self.sigmas_K=self.add_weight(name='sigmas', shape=(self.output_dim, 1), initializer=Constant(self.sigmas), trainable=False)
 
 	def call(self, x):
 		return self.sigmas_K
 
-class HjGrnn: 
+class HjRbf: 
 
 	def __init__(self, pre_day, dict_day, stock_id):
 		self.stock_id=stock_id
@@ -104,7 +104,7 @@ class HjGrnn:
 	def build_model(self):
 		self.model = Sequential()
 		self.model.add(RBFLayer(128, self.train_x, input_shape=(self.train_x.shape[-1],)))
-	#	self.model.add(Dense(1, activation='linear'))
+		#self.model.add(Dense(1, activation='linear'))
 		self.model.compile(loss='msle', optimizer='nadam')
 
 	def train_model(self):
@@ -122,9 +122,8 @@ class HjGrnn:
 
 		if xs is None:
 			#self.predict_y=self.model.predict(self.test_x)
-			self.predict_y=self.model.predict(self.train_x, batch_size=128)
+			self.predict_y=self.model.predict(self.train_x)
 			pdb.set_trace()
-                        return estimators.rmse(self.predict_y, self.test_y)
 		else:
                         x_alls=[]
                         for x in xs:
@@ -193,10 +192,10 @@ if __name__ == '__main__':
 	pre_day=64
 	dict_day=1
 	
-	nn=HjGrnn(pre_day, dict_day, stock_id)
+	nn=HjRbf(pre_day, dict_day, stock_id)
 	#advise(nn)
 	#nn.load_file()
 	nn.load_data(False)
 	#nn.train_model()
-        print nn.predict()
+        nn.predict()
         #nn.plot()
