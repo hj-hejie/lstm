@@ -1,5 +1,4 @@
-#!/usr/bin/python
-
+#!/usr/bin/python 
 import sys
 import os
 from datetime import datetime, timedelta
@@ -32,6 +31,7 @@ class HjLstm:
 		self.weights_file=self.stock_id+self.nn_layer+'_'+str(self.pre_day)+'_'+str(self.dict_day)+'.h5'
 		self.data_file=self.stock_id+'.csv'
 		self.indexs={'close':{}, 'open':{}, 'high':{}, 'low':{}, 'volume':{}}
+		#self.indexs={'close':{}}
 		for i in self.indexs:
 			self.indexs[i]['scaler']=MinMaxScaler();
 		#self.close_index=2
@@ -109,11 +109,7 @@ class HjLstm:
 			self.model = Sequential()
             		self.model.add(Dense(512, input_dim=self.pre_day*len(self.indexs), activation='sigmoid'))
 			self.model.add(Dropout(0.5))
-			self.model.add(Dense(256, activation='sigmoid'))
-			self.model.add(Dropout(0.5))
-			self.model.add(Dense(128, activation='sigmoid'))
-			self.model.add(Dropout(0.5))
-			self.model.add(Dense(64, activation='sigmoid'))
+            		self.model.add(Dense(128, input_dim=self.pre_day*len(self.indexs), activation='sigmoid'))
 			self.model.add(Dropout(0.5))
 			self.model.add(Dense(1, activation='sigmoid'))
 
@@ -138,10 +134,10 @@ class HjLstm:
 
 		elif self.nn_layer=='lstm3':
 			self.model=Sequential()
-			self.model.add(LSTM(100, input_shape=(None, 1), return_sequences=True, dropout=0.5, recurrent_dropout=0.5))
-			self.model.add(LSTM(70, return_sequences=True, dropout=0.5, recurrent_dropout=0.5))
-			self.model.add(LSTM(30, dropout=0.5, recurrent_dropout=0.5))
-                        self.model.add(Dense(1, activation='linear'))
+			self.model.add(LSTM(100, input_shape=(None, 1), return_sequences=True))
+			self.model.add(LSTM(70, return_sequences=True))
+			self.model.add(LSTM(30))
+                        self.model.add(Dense(1, activation='sigmoid'))
 
 		#self.model.compile(loss='mse', optimizer='rmsprop')
 		self.model.compile(loss='msle', optimizer='nadam')
@@ -158,7 +154,8 @@ class HjLstm:
 			self.build_model()
 
 		#history=self.model.fit(self.train_all, self.train_y_close, batch_size=50, epochs=1000, validation_split=0.3, callbacks=[EarlyStopping('val_loss')])
-		history=self.model.fit(self.train_all, self.train_y_close, batch_size=50, epochs=128, validation_split=0.3)
+		history=self.model.fit(self.train_all, self.train_y_close, batch_size=50, epochs=30000)
+		#history=self.model.fit(np.reshape(self.train_all, (len(self.train_all), -1, 1)), self.train_y_close, batch_size=50, epochs=10, validation_split=0.3)
 
 		self.model.save_weights(self.weights_file)
 
@@ -178,6 +175,7 @@ class HjLstm:
 
 		if x is None:
 			self.predict_y=self.model.predict(self.train_all)
+			#self.predict_y=self.model.predict(np.reshape(self.train_all, (len(self.train_all), -1, 1)))
 		else:
 			x_all=None
 			for i in x:
@@ -320,10 +318,10 @@ if __name__ == '__main__':
 		
 	#nn=HjLstm(pre_day, dict_day, stock_id, 'dnn_10_100_10_1')
 	nn=HjLstm(pre_day, dict_day, stock_id, 'dnn2')
-	advise(nn)
 	#nn.load_file()
-	#nn.load_data(False)
-	#nn.train_model()
+	nn.load_data(False)
+	nn.train_model()
+	advise(nn)
         #nn.plot()
 	#nn.load_data()
 	#print nn.predict(nn.data.values[-pre_day:]).shape
