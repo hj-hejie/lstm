@@ -32,14 +32,16 @@ class RBFLayer(Layer):
 		super(RBFLayer, self).__init__(**kwargs)
 
 	def build(self, input_shape):
-		self.means_K=self.add_weight(name='means', shape=(self.output_dim, input_shape[1]), initializer=Constant(self.means), trainable=False)
-		self.sigmas_K=self.add_weight(name='sigmas', shape=(self.output_dim,), initializer=Constant(self.sigmas), trainable=False)
+		#self.means_K=self.add_weight(name='means', shape=(self.output_dim, input_shape[1]), initializer=Constant(self.means), trainable=False)
+		#self.sigmas_K=self.add_weight(name='sigmas', shape=(self.output_dim,), initializer=Constant(self.sigmas), trainable=False)
+		self.means_K=K.variable(value=self.means)
+		self.sigmas_K=K.variable(value=self.sigmas)
 		super(RBFLayer, self).build(input_shape)	
 
 	def call(self, x):
 		C = K.expand_dims(self.means_K)
 		H = K.transpose(C-K.transpose(x))
-		return K.exp(-K.sum(H**2, axis=1))
+		return K.exp(-K.sum(H**2, axis=1)/(2*self.sigmas_K**2))
 
 	def compute_output_shape(self, input_shape):
 		return (input_shape[0], self.output_dim)
@@ -112,7 +114,7 @@ class HjRbf:
 
 	def build_model(self):
 		self.model = Sequential()
-		self.model.add(RBFLayer(256, self.train_x, input_shape=(self.pre_day,)))
+		self.model.add(RBFLayer(512, self.train_x, input_shape=(self.pre_day,)))
 		self.model.add(Dense(1))
 		self.model.compile(loss='mse', optimizer='nadam')
 		
@@ -124,7 +126,7 @@ class HjRbf:
 			self.load_data()
 		if(not hasattr(self, 'model')):
 			self.build_model()	
-		self.model.fit(self.train_x, self.train_y, epochs=300000)
+		self.model.fit(self.train_x, self.train_y, epochs=3000)
 
 		self.model.save_weights(self.weights_file)
 

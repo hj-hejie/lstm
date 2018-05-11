@@ -1,5 +1,5 @@
 #!/bin/bash
 while true
 do
-	./hejie.py
+	./hjxx.py
 done

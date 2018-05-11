@@ -320,8 +320,8 @@ if __name__ == '__main__':
 	nn=HjLstm(pre_day, dict_day, stock_id, 'dnn2')
 	#nn.load_file()
 	nn.load_data(False)
-	#nn.train_model()
-	advise(nn)
+	nn.train_model()
+	#advise(nn)
         #nn.plot()
 	#nn.load_data()
 	#print nn.predict(nn.data.values[-pre_day:]).shape
