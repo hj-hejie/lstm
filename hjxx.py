@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+
 import sys
 import os
 from datetime import datetime, timedelta
@@ -13,7 +14,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.cluster import KMeans
 from keras.engine.topology import Layer
 from keras.models import Sequential
-from keras.layers import Dense
+from keras.layers import Dense, Dropout
 from keras.initializers import Constant
 from keras import backend as K
 import pdb
@@ -32,10 +33,15 @@ class RBFLayer(Layer):
 
 	def build(self, input_shape):
 		self.means_K=self.add_weight(name='means', shape=(self.output_dim, input_shape[1]), initializer=Constant(self.means), trainable=False)
-		self.sigmas_K=self.add_weight(name='sigmas', shape=(self.output_dim, 1), initializer=Constant(self.sigmas), trainable=False)
+		self.sigmas_K=self.add_weight(name='sigmas', shape=(self.output_dim,), initializer=Constant(self.sigmas), trainable=False)
 
 	def call(self, x):
-		return self.sigmas_K
+		C = K.expand_dims(self.means_K)
+		H = K.transpose(C-K.transpose(x))
+		return K.exp(-self.sigmas_K*K.sum(H**2, axis=1))
+
+	def compute_output_shape(self, input_shape):
+		return (input_shape[0], self.output_dim)
 
 class HjRbf: 
 
@@ -44,6 +50,7 @@ class HjRbf:
 		self.pre_day=pre_day
 		self.dict_day=dict_day
 		self.split=1
+		self.weights_file=self.stock_id+'_rbf_'+str(self.pre_day)+'_'+str(self.dict_day)+'.h5'
 		self.data_file=self.stock_id+'.csv'
 		#self.indexs={'close':{}, 'open':{}, 'high':{}, 'low':{}, 'volume':{}}
 		self.indexs={'close':{}}
@@ -77,71 +84,71 @@ class HjRbf:
 			self.data.to_csv(self.data_file)
 
 	def load_data(self, update=True):
-		self.load_file(update)
-		seq_length=self.pre_day+self.dict_day
-		for j in self.indexs:
-			data=self.data[j]
-			data=np.reshape(data, (-1, 1))
-			data=self.indexs[j]['scaler'].fit_transform(data)
-			data=np.reshape(data, len(data))
-			reshaped_data = []
-			for i in range(len(data) - seq_length+1):
-				reshaped_data.append(data[i: i + seq_length])
-			reshaped_data = np.array(reshaped_data)
-                	setattr(self, 'train_x_'+j, reshaped_data[:, :self.pre_day])
-			setattr(self, 'train_y_'+j, reshaped_data[:,-1])
-			if not hasattr(self, 'train_all'):
-				self.train_all=reshaped_data[:, :self.pre_day];
-			else:
-				self.train_all=np.concatenate((self.train_all, reshaped_data[:, :self.pre_day]), axis=1)
-                #self.train_x, self.test_x, self.train_y, self.test_y=train_test_split(self.train_all, self.train_y_close, test_size=1-self.split)
-                split=int(len(self.train_all)*self.split)
-                self.train_x=self.train_all[:split]
-                self.test_x=self.train_all[split:]
-                self.train_y=self.train_y_close[:split]
-                self.test_y=self.train_y_close[split:]
+		if(not hasattr(self, 'data')):
+			self.load_file(update)
+			seq_length=self.pre_day+self.dict_day
+			for j in self.indexs:
+				data=self.data[j]
+				data=np.reshape(data, (-1, 1))
+				data=self.indexs[j]['scaler'].fit_transform(data)
+				data=np.reshape(data, len(data))
+				reshaped_data = []
+				for i in range(len(data) - seq_length+1):
+					reshaped_data.append(data[i: i + seq_length])
+				reshaped_data = np.array(reshaped_data)
+				setattr(self, 'train_x_'+j, reshaped_data[:, :self.pre_day])
+				setattr(self, 'train_y_'+j, reshaped_data[:,-1])
+				if not hasattr(self, 'train_all'):
+					self.train_all=reshaped_data[:, :self.pre_day];
+				else:
+					self.train_all=np.concatenate((self.train_all, reshaped_data[:, :self.pre_day]), axis=1)
+			#self.train_x, self.test_x, self.train_y, self.test_y=train_test_split(self.train_all, self.train_y_close, test_size=1-self.split)
+			split=int(len(self.train_all)*self.split)
+			self.train_x=self.train_all[:split]
+			self.test_x=self.train_all[split:]
+			self.train_y=self.train_y_close[:split]
+			self.test_y=self.train_y_close[split:]
 
 	def build_model(self):
 		self.model = Sequential()
-		self.model.add(RBFLayer(128, self.train_x, input_shape=(self.train_x.shape[-1],)))
-		#self.model.add(Dense(1, activation='linear'))
-		self.model.compile(loss='msle', optimizer='nadam')
+		self.model.add(RBFLayer(256, self.train_x, input_shape=(self.pre_day,)))
+		self.model.add(Dense(1))
+		self.model.compile(loss='mse', optimizer='nadam')
+		
+		if(os.path.exists(self.weights_file)):
+			self.model.load_weights(self.weights_file)
 
 	def train_model(self):
 		if(not hasattr(self, 'data')):
 			self.load_data()
 		if(not hasattr(self, 'model')):
 			self.build_model()	
-		self.model.fit(self.train_all, self.train_y_close, batch_size=50, epochs=10)
+		self.model.fit(self.train_x, self.train_y, epochs=300)
 
-	def predict(self, xs=None):
-		if not hasattr(self, 'data') and xs is None:
+		self.model.save_weights(self.weights_file)
+
+	def predict(self, x=None):
+		if not hasattr(self, 'data') and x is None:
                         self.load_data()
                 if not hasattr(self, 'model'):
                 	self.build_model()
 
-		if xs is None:
-			#self.predict_y=self.model.predict(self.test_x)
+		if x is None:
 			self.predict_y=self.model.predict(self.train_x)
-			pdb.set_trace()
 		else:
-                        x_alls=[]
-                        for x in xs:
-			    x_all=None
-			    for i in x:
+			x_all=None
+			for i in x:
 				x_fit=self.indexs[i]['scaler'].transform(np.reshape(x[i], (-1, 1)))
 				x_fit=np.reshape(x_fit, (1, -1))
 				x_all= (x_fit if x_all is None else np.concatenate((x_all, x_fit), axis=1))
 
-                            x_alls.append(np.reshape(x_all, (-1,)))
-
-			predict_y=self.model.predict(x_alls)
+			predict_y=self.model.predict(x_all)
 			return self.indexs['close']['scaler'].inverse_transform(predict_y)
 
 	def plot(self):
 		self.predict()
 		predict_y_inverse = self.indexs['close']['scaler'].inverse_transform(self.predict_y)
-		test_y_inverse = self.indexs['close']['scaler'].inverse_transform(np.reshape(self.test_y, (-1, 1)))
+		test_y_inverse = self.indexs['close']['scaler'].inverse_transform(np.reshape(self.train_y, (-1, 1)))
 		plt.plot(predict_y_inverse, 'r-')
 		plt.plot(predict_y_inverse, 'ro')
 		plt.plot(test_y_inverse, 'go')
@@ -156,9 +163,8 @@ def advise(lstm):
 		data[i]=lstm.data[i][-lstm.pre_day:]
 		data_pre[i]=lstm.data[i][-lstm.pre_day-1:-1]
 	data_last=lstm.data['close'][-1]
-        predicts=lstm.predict([data_pre, data])
-	predict_last=predicts[0][0]
-	predict=predicts[1][0]
+	predict_last=lstm.predict(data_pre)[0][0]
+	predict=lstm.predict(data)[0][0]
 	predict_new=data_last*(1+(predict-predict_last)/predict_last)
 
 	logger.info('\ndata_last:%s\n'\
@@ -193,9 +199,8 @@ if __name__ == '__main__':
 	dict_day=1
 	
 	nn=HjRbf(pre_day, dict_day, stock_id)
-	#advise(nn)
 	#nn.load_file()
 	nn.load_data(False)
 	#nn.train_model()
-        nn.predict()
+        advise(nn)
         #nn.plot()
