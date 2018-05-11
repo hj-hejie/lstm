@@ -34,11 +34,12 @@ class RBFLayer(Layer):
 	def build(self, input_shape):
 		self.means_K=self.add_weight(name='means', shape=(self.output_dim, input_shape[1]), initializer=Constant(self.means), trainable=False)
 		self.sigmas_K=self.add_weight(name='sigmas', shape=(self.output_dim,), initializer=Constant(self.sigmas), trainable=False)
+		super(RBFLayer, self).build(input_shape)	
 
 	def call(self, x):
 		C = K.expand_dims(self.means_K)
 		H = K.transpose(C-K.transpose(x))
-		return K.exp(-self.sigmas_K*K.sum(H**2, axis=1))
+		return K.exp(-K.sum(H**2, axis=1))
 
 	def compute_output_shape(self, input_shape):
 		return (input_shape[0], self.output_dim)
@@ -123,7 +124,7 @@ class HjRbf:
 			self.load_data()
 		if(not hasattr(self, 'model')):
 			self.build_model()	
-		self.model.fit(self.train_x, self.train_y, epochs=300)
+		self.model.fit(self.train_x, self.train_y, epochs=300000)
 
 		self.model.save_weights(self.weights_file)
 
@@ -201,6 +202,6 @@ if __name__ == '__main__':
 	nn=HjRbf(pre_day, dict_day, stock_id)
 	#nn.load_file()
 	nn.load_data(False)
-	#nn.train_model()
-        advise(nn)
+	nn.train_model()
+        #advise(nn)
         #nn.plot()
