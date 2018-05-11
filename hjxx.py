@@ -29,7 +29,8 @@ class RBFLayer(Layer):
 	def __init__(self, output_dim, train_x, **kwargs):
 		self.output_dim=output_dim
 		self.means=KMeans(n_clusters=output_dim, random_state=0).fit(train_x).cluster_centers_
-		self.sigmas=np.array([(np.sum([(j-i)**2 for j in self.means])/len(self.means))**0.5 for i in self.means])
+		#self.sigmas=np.array([(np.sum([(j-i)**2 for j in self.means])/len(self.means))**0.5 for i in self.means])
+		self.sigmas=np.repeat(self.means.std(), len(self.means))
 		self.means_K=K.variable(value=self.means)
 		self.sigmas_K=K.variable(value=self.sigmas)
 		super(RBFLayer, self).__init__(**kwargs)
@@ -127,7 +128,7 @@ class HjRbf:
 			self.load_data()
 		if(not hasattr(self, 'model')):
 			self.build_model()	
-		self.model.fit(self.train_x, self.train_y, epochs=3000)
+		self.model.fit(self.train_x, self.train_y, epochs=200)
 
 		self.model.save_weights(self.weights_file)
 
