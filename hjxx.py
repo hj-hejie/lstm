@@ -16,6 +16,7 @@ from keras.engine.topology import Layer
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
 from keras.initializers import Constant
+from keras.optimizers import RMSprop
 from keras import backend as K
 import pdb
 import logging
@@ -28,14 +29,14 @@ class RBFLayer(Layer):
 	def __init__(self, output_dim, train_x, **kwargs):
 		self.output_dim=output_dim
 		self.means=KMeans(n_clusters=output_dim, random_state=0).fit(train_x).cluster_centers_
-		self.sigmas=np.array([(np.sum([np.linalg.norm(j-i)**2 for j in self.means])/len(self.means))**0.5 for i in self.means])
+		self.sigmas=np.array([(np.sum([(j-i)**2 for j in self.means])/len(self.means))**0.5 for i in self.means])
+		self.means_K=K.variable(value=self.means)
+		self.sigmas_K=K.variable(value=self.sigmas)
 		super(RBFLayer, self).__init__(**kwargs)
 
 	def build(self, input_shape):
 		#self.means_K=self.add_weight(name='means', shape=(self.output_dim, input_shape[1]), initializer=Constant(self.means), trainable=False)
 		#self.sigmas_K=self.add_weight(name='sigmas', shape=(self.output_dim,), initializer=Constant(self.sigmas), trainable=False)
-		self.means_K=K.variable(value=self.means)
-		self.sigmas_K=K.variable(value=self.sigmas)
 		super(RBFLayer, self).build(input_shape)	
 
 	def call(self, x):
@@ -114,9 +115,9 @@ class HjRbf:
 
 	def build_model(self):
 		self.model = Sequential()
-		self.model.add(RBFLayer(512, self.train_x, input_shape=(self.pre_day,)))
+		self.model.add(RBFLayer(256, self.train_x, input_shape=(self.pre_day,)))
 		self.model.add(Dense(1))
-		self.model.compile(loss='mse', optimizer='nadam')
+		self.model.compile(loss='mse', optimizer=RMSprop())
 		
 		if(os.path.exists(self.weights_file)):
 			self.model.load_weights(self.weights_file)
