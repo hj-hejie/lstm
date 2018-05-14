@@ -116,7 +116,7 @@ class HjRbf:
 
 	def build_model(self):
 		self.model = Sequential()
-		self.model.add(RBFLayer(256, self.train_x, input_shape=(self.pre_day,)))
+		self.model.add(RBFLayer(256, self.train_x, input_shape=(self.pre_day*len(self.indexs),)))
 		self.model.add(Dense(1))
 		self.model.compile(loss='mse', optimizer=RMSprop())
 		
@@ -206,6 +206,6 @@ if __name__ == '__main__':
 	nn=HjRbf(pre_day, dict_day, stock_id)
 	#nn.load_file()
 	nn.load_data(False)
-	nn.train_model()
-        #advise(nn)
+	#nn.train_model()
+        advise(nn)
         #nn.plot()
