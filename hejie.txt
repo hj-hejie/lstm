@@ -4,47 +4,11 @@ Using Theano backend.
 WARNING (theano.tensor.blas): Using NumPy C-API based implementation for BLAS functions.
 /usr/local/lib/python2.7/dist-packages/numpy/core/fromnumeric.py:52: FutureWarning: reshape is deprecated and will raise in a subsequent release. Please use .values.reshape(...) instead
   return getattr(obj, method)(*args, **kwds)
-hjxx.py[188] [2018-05-13 19:11:47,249] [INFO] 
-data_last:6.37
-predict_last:6.55216
-predict:7.363998
-predict/predict_last:0.1239039
-predict_new:7.159267845451832
-predict/data_last:0.15604363206417254
-kelly:0.12090771294090373
-/usr/local/lib/python2.7/dist-packages/h5py/__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
-  from ._conv import register_converters as _register_converters
-Using Theano backend.
-WARNING (theano.tensor.blas): Using NumPy C-API based implementation for BLAS functions.
-/usr/local/lib/python2.7/dist-packages/numpy/core/fromnumeric.py:52: FutureWarning: reshape is deprecated and will raise in a subsequent release. Please use .values.reshape(...) instead
-  return getattr(obj, method)(*args, **kwds)
-hejie.py[267] [2018-05-13 19:12:01,188] [INFO] 
-data_last:6.37
-predict_last:6.55585
-predict:6.79268
-predict/predict_last:0.036124952
-predict_new:6.600115945115686
-predict/data_last:0.06635475458118191
-kelly:0.03586582191744252
-WARNING (theano.tensor.blas): Using NumPy C-API based implementation for BLAS functions.
-/usr/local/lib/python2.7/dist-packages/numpy/core/fromnumeric.py:52: FutureWarning: reshape is deprecated and will raise in a subsequent release. Please use .values.reshape(...) instead
-  return getattr(obj, method)(*args, **kwds)
-hjgrnn.py[146] [2018-05-13 19:12:11,981] [INFO] 
-data_last:6.37
-predict_last:7.22
-predict:7.22
-predict/predict_last:0.0
-predict_new:6.37
-predict/data_last:0.13343799058084765
-kelly:0.0
-WARNING (theano.tensor.blas): Using NumPy C-API based implementation for BLAS functions.
-/usr/local/lib/python2.7/dist-packages/numpy/core/fromnumeric.py:52: FutureWarning: reshape is deprecated and will raise in a subsequent release. Please use .values.reshape(...) instead
-  return getattr(obj, method)(*args, **kwds)
-hjrbf.py[146] [2018-05-13 19:13:20,047] [INFO] 
-data_last:6.37
-predict_last:990.7600000000001
-predict:990.7600000000001
-predict/predict_last:0.0
-predict_new:6.37
-predict/data_last:154.53532182103612
-kelly:0.0
+hejie.py[267] [2018-05-14 04:11:26,759] [INFO] 
+data_last:6.2
+predict_last:6.3542852
+predict:6.364228
+predict/predict_last:0.0015646971
+predict_new:6.209701122203842
+predict/data_last:0.026488350283715004
+kelly:0.0015642076274149448

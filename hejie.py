@@ -30,8 +30,8 @@ class HjLstm:
 		#self.split=0.8
 		self.weights_file=self.stock_id+self.nn_layer+'_'+str(self.pre_day)+'_'+str(self.dict_day)+'.h5'
 		self.data_file=self.stock_id+'.csv'
-		self.indexs={'close':{}, 'open':{}, 'high':{}, 'low':{}, 'volume':{}}
-		#self.indexs={'close':{}}
+		#self.indexs={'close':{}, 'open':{}, 'high':{}, 'low':{}, 'volume':{}}
+		self.indexs={'close':{}, 'volume':{}}
 		for i in self.indexs:
 			self.indexs[i]['scaler']=MinMaxScaler();
 		#self.close_index=2
@@ -154,7 +154,7 @@ class HjLstm:
 			self.build_model()
 
 		#history=self.model.fit(self.train_all, self.train_y_close, batch_size=50, epochs=1000, validation_split=0.3, callbacks=[EarlyStopping('val_loss')])
-		history=self.model.fit(self.train_all, self.train_y_close, batch_size=50, epochs=30000)
+		history=self.model.fit(self.train_all, self.train_y_close, batch_size=50, epochs=250, validation_split=0.3)
 		#history=self.model.fit(np.reshape(self.train_all, (len(self.train_all), -1, 1)), self.train_y_close, batch_size=50, epochs=10, validation_split=0.3)
 
 		self.model.save_weights(self.weights_file)

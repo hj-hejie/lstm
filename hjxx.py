@@ -58,6 +58,7 @@ class HjRbf:
 		self.weights_file=self.stock_id+'_rbf_'+str(self.pre_day)+'_'+str(self.dict_day)+'.h5'
 		self.data_file=self.stock_id+'.csv'
 		#self.indexs={'close':{}, 'open':{}, 'high':{}, 'low':{}, 'volume':{}}
+		#self.indexs={'close':{}, 'volume':{}}
 		self.indexs={'close':{}}
 		for i in self.indexs:
 			self.indexs[i]['scaler']=MinMaxScaler()
@@ -117,6 +118,7 @@ class HjRbf:
 	def build_model(self):
 		self.model = Sequential()
 		self.model.add(RBFLayer(256, self.train_x, input_shape=(self.pre_day*len(self.indexs),)))
+		self.model.add(Dropout(0.5))
 		self.model.add(Dense(1))
 		self.model.compile(loss='mse', optimizer=RMSprop())
 		
@@ -128,7 +130,7 @@ class HjRbf:
 			self.load_data()
 		if(not hasattr(self, 'model')):
 			self.build_model()	
-		self.model.fit(self.train_x, self.train_y, epochs=200)
+		self.model.fit(self.train_x, self.train_y, epochs=200, validation_split=0.3)
 
 		self.model.save_weights(self.weights_file)
 
@@ -205,7 +207,7 @@ if __name__ == '__main__':
 	
 	nn=HjRbf(pre_day, dict_day, stock_id)
 	#nn.load_file()
-	nn.load_data(False)
+	#nn.load_data(False)
 	#nn.train_model()
         advise(nn)
         #nn.plot()
