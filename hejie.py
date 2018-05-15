@@ -154,7 +154,7 @@ class HjLstm:
 			self.build_model()
 
 		#history=self.model.fit(self.train_all, self.train_y_close, batch_size=50, epochs=1000, validation_split=0.3, callbacks=[EarlyStopping('val_loss')])
-		history=self.model.fit(self.train_all, self.train_y_close, batch_size=50, epochs=250, validation_split=0.3)
+		history=self.model.fit(self.train_all, self.train_y_close, batch_size=50, epochs=250)
 		#history=self.model.fit(np.reshape(self.train_all, (len(self.train_all), -1, 1)), self.train_y_close, batch_size=50, epochs=10, validation_split=0.3)
 
 		self.model.save_weights(self.weights_file)
