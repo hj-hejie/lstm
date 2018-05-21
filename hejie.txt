@@ -26,3 +26,17 @@ predict/predict_last:0.019948417
 predict_new:6.517470386680215
 predict/data_last:0.029594552722148917
 kelly:0.019869145718726333
+/usr/local/lib/python2.7/dist-packages/h5py/__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+Using Theano backend.
+WARNING (theano.tensor.blas): Using NumPy C-API based implementation for BLAS functions.
+/usr/local/lib/python2.7/dist-packages/numpy/core/fromnumeric.py:52: FutureWarning: reshape is deprecated and will raise in a subsequent release. Please use .values.reshape(...) instead
+  return getattr(obj, method)(*args, **kwds)
+hejie.py[267] [2018-05-20 19:40:49,939] [INFO] 
+data_last:6.39
+predict_last:6.557135
+predict:6.5262
+predict/predict_last:-0.0047178054
+predict_new:6.359853223348036
+predict/data_last:0.02131452545500329
+kelly:-0.00472226116470869
