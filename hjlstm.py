@@ -16,6 +16,7 @@ from keras.callbacks import EarlyStopping
 #from keras.utils import plot_model
 import pdb
 import logging
+from neupy import layers, algorithms
 
 logging.basicConfig(level=logging.INFO, format='%(filename)s[%(lineno)s] [%(asctime)s] [%(levelname)s] %(message)s')
 logger = logging.getLogger(__name__)
@@ -28,11 +29,12 @@ class HjLstm:
 		self.dims=dims
 		self.pre_day=pre_day
 		self.dict_day=dict_day
-		self.split=0.8
+		#self.split=0.7
 		self.weights_file=self.stock_id+self.nn_layer+'_'+str(self.pre_day)+'_'+str(self.dict_day)+'.h5'
 		self.data_file=self.stock_id+'.csv'
 		self.bins=np.linspace(-0.10, 0.10, self.dims-1)
 		self.eye=np.eye(self.dims)
+		self.scaler=MinMaxScaler()
 
 	def get_new_data(self):
 		new_data=None;
@@ -59,6 +61,7 @@ class HjLstm:
 		else:
 			self.data=ts.get_hist_data(self.stock_id).sort_index(axis=0, ascending=True)
 			self.data.to_csv(self.data_file)
+		self.data_array=self.data.as_matrix()
 		self.data_price_change=self.data['price_change']
 		self.data_price_change_digitize=np.digitize(self.data_price_change, self.bins)
 		self.data_price_change_1hot=self.eye[self.data_price_change_digitize]
@@ -66,13 +69,19 @@ class HjLstm:
 	def load_data(self, update=True):
 		self.load_file(update)
 		seq_length=self.pre_day+self.dict_day
-		data=self.data_price_change_1hot
+		data=self.scaler.fit_transform(self.data_array)
+		data_price_change=self.data_price_change_1hot
 		reshaped_data = []
+		reshaped_data_price_change = []
 		for i in range(len(data) - seq_length+1):
 			reshaped_data.append(data[i: i + seq_length])
+			reshaped_data_price_change.append(data_price_change[i: i + seq_length])
 		reshaped_data = np.array(reshaped_data)
+		reshaped_data_price_change = np.array(reshaped_data_price_change)
                 self.train_x=reshaped_data[:, :self.pre_day]
-		self.train_y=reshaped_data[:,-1]
+		self.train_y=reshaped_data_price_change[:,-1]
+                #x=reshaped_data[:, :self.pre_day]
+		#y=reshaped_data_price_change[:,-1]
 		#split = int(reshaped_data.shape[0] * self.split)
 		#self.train_x = x[:split]
 		#self.test_x = x[split:]
@@ -82,7 +91,7 @@ class HjLstm:
 	def build_model(self):
 
 		self.model=Sequential()
-		self.model.add(LSTM(32, input_shape=(self.pre_day, self.dims)))
+		self.model.add(LSTM(16, input_shape=(self.pre_day, len(self.data.columns)), recurrent_dropout=0.5))
 		#self.model.add(LSTM(32))
 		#self.model.add(LSTM(self.dims))
                 self.model.add(Dense(self.dims, activation='softmax'))
@@ -91,10 +100,21 @@ class HjLstm:
 		#self.model.compile(loss='msle', optimizer='nadam')
 		#self.model.compile(loss='binary_crossentropy', optimizer='nadam')
 		self.model.compile(loss='categorical_crossentropy', optimizer='nadam')
+		#self.model.compile(loss='sparse_categorical_crossentropy', optimizer='nadam')
 
 		if(os.path.exists(self.weights_file)):
 			self.model.load_weights(self.weights_file)
 		#plot_model(self.model)
+		'''
+		self.model=algorithms.RMSProp([
+				layers.Input((self.pre_day, len(self.data.columns))),
+				layers.LSTM(16),
+				layers.Softmax(self.dims)
+			],
+			error='categorical_crossentropy',
+			verbose=True
+			)
+		'''
 
 	def train_model(self, d=None):
 		if(not hasattr(self, 'data')):
@@ -103,7 +123,7 @@ class HjLstm:
 			self.build_model()
 
 		#history=self.model.fit(self.train_all, self.train_y_close, batch_size=50, epochs=1000, validation_split=0.3, callbacks=[EarlyStopping('val_loss')])
-		history=self.model.fit(self.train_x, self.train_y, batch_size=50, epochs=1000, validation_split=0.2)
+		history=self.model.fit(self.train_x, self.train_y, batch_size=100, epochs=1000, validation_split=0.3)
 		#history=self.model.fit(np.reshape(self.train_all, (len(self.train_all), -1, 1)), self.train_y_close, batch_size=50, epochs=10, validation_split=0.3)
 
 		self.model.save_weights(self.weights_file)
@@ -115,6 +135,9 @@ class HjLstm:
 		if d is not None:
 			d[self.nn_layer+'loss']=history.history['loss']
 			d[self.nn_layer+'val_loss']=history.history['val_loss']
+		'''
+		self.model.train(self.train_x, self.train_y, epochs=1000, input_test=self.test_x, target_test=self.test_y)
+		'''
 
 	def predict(self, x=None):
 		if not hasattr(self, 'data') and x is None:
@@ -244,7 +267,7 @@ if __name__ == '__main__':
 	nn.load_data(False)
 	nn.train_model()
 	#nn.predict()
-	advise(nn)
+	#advise(nn)
         #nn.plot()
 	#nn.load_data()
 	#print nn.predict(nn.data.values[-pre_day:]).shape
