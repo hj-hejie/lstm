@@ -16,23 +16,23 @@ from keras.callbacks import EarlyStopping
 #from keras.utils import plot_model
 import pdb
 import logging
-from neupy import layers, algorithms
+#from neupy import layers, algorithms
 
 logging.basicConfig(level=logging.INFO, format='%(filename)s[%(lineno)s] [%(asctime)s] [%(levelname)s] %(message)s')
 logger = logging.getLogger(__name__)
 
 class HjLstm: 
 
-	def __init__(self, stock_id, pre_day=16, dict_day=1, nn_layer='lstm', dims=22):
+	def __init__(self, stock_id, pre_day=32, dict_day=1, nn_layer='lstm', dims=22):
 		self.stock_id=stock_id
 		self.nn_layer=nn_layer
 		self.dims=dims
 		self.pre_day=pre_day
 		self.dict_day=dict_day
-		#self.split=0.7
+		self.split=0.9
 		self.weights_file=self.stock_id+self.nn_layer+'_'+str(self.pre_day)+'_'+str(self.dict_day)+'.h5'
 		self.data_file=self.stock_id+'.csv'
-		self.bins=np.linspace(-0.10, 0.10, self.dims-1)
+		self.bins=np.linspace(-10, 10, self.dims-1)
 		self.eye=np.eye(self.dims)
 		self.scaler=MinMaxScaler()
 
@@ -61,8 +61,9 @@ class HjLstm:
 		else:
 			self.data=ts.get_hist_data(self.stock_id).sort_index(axis=0, ascending=True)
 			self.data.to_csv(self.data_file)
-		self.data_array=self.data.as_matrix()
-		self.data_price_change=self.data['price_change']
+		#self.data_array=self.data.as_matrix(['close', 'high', 'low', 'open', 'price_change'])
+		self.data_array=self.data.as_matrix(['p_change'])
+		self.data_price_change=self.data['p_change']
 		self.data_price_change_digitize=np.digitize(self.data_price_change, self.bins)
 		self.data_price_change_1hot=self.eye[self.data_price_change_digitize]
 
@@ -78,29 +79,32 @@ class HjLstm:
 			reshaped_data_price_change.append(data_price_change[i: i + seq_length])
 		reshaped_data = np.array(reshaped_data)
 		reshaped_data_price_change = np.array(reshaped_data_price_change)
-                self.train_x=reshaped_data[:, :self.pre_day]
-		self.train_y=reshaped_data_price_change[:,-1]
-                #x=reshaped_data[:, :self.pre_day]
-		#y=reshaped_data_price_change[:,-1]
-		#split = int(reshaped_data.shape[0] * self.split)
-		#self.train_x = x[:split]
-		#self.test_x = x[split:]
-		#self.train_y = y[:split]
-		#self.test_y = y[split:]
+                #self.train_x=reshaped_data[:, :self.pre_day]
+		#self.train_y=reshaped_data_price_change[:,-1]
+                x=reshaped_data[:, :self.pre_day]
+                #x=reshaped_data_price_change[:, :self.pre_day]
+		y=reshaped_data_price_change[:,-1]
+		split = int(reshaped_data.shape[0] * self.split)
+		self.train_x = x[:split]
+		self.test_x = x[split:]
+		self.train_y = y[:split]
+		self.test_y = y[split:]
 
 	def build_model(self):
 
 		self.model=Sequential()
-		self.model.add(LSTM(16, input_shape=(self.pre_day, len(self.data.columns)), recurrent_dropout=0.5))
-		#self.model.add(LSTM(32))
-		#self.model.add(LSTM(self.dims))
+		self.model.add(LSTM(32, input_shape=(self.pre_day, self.data_array.shape[1])))
+		#self.model.add(LSTM(50, input_shape=(self.pre_day, self.data_array.shape[1]), return_sequences=True))
+		#self.model.add(LSTM(32, batch_input_shape=(1, self.pre_day, self.data_array.shape[1]), stateful=True))
+		#self.model.add(LSTM(16))
                 self.model.add(Dense(self.dims, activation='softmax'))
+                #self.model.add(Dense(self.dims, activation='sigmoid'))
 
 		#self.model.compile(loss='mse', optimizer='rmsprop')
 		#self.model.compile(loss='msle', optimizer='nadam')
-		#self.model.compile(loss='binary_crossentropy', optimizer='nadam')
-		self.model.compile(loss='categorical_crossentropy', optimizer='nadam')
-		#self.model.compile(loss='sparse_categorical_crossentropy', optimizer='nadam')
+		#self.model.compile(loss='binary_crossentropy', optimizer='nadam', metrics=['accuracy'])
+		self.model.compile(loss='categorical_crossentropy', optimizer='nadam', metrics=['accuracy'])
+		#self.model.compile(loss='sparse_categorical_crossentropy', optimizer='nadam', metrics=['accuracy'])
 
 		if(os.path.exists(self.weights_file)):
 			self.model.load_weights(self.weights_file)
@@ -123,10 +127,12 @@ class HjLstm:
 			self.build_model()
 
 		#history=self.model.fit(self.train_all, self.train_y_close, batch_size=50, epochs=1000, validation_split=0.3, callbacks=[EarlyStopping('val_loss')])
-		history=self.model.fit(self.train_x, self.train_y, batch_size=100, epochs=1000, validation_split=0.3)
+		history=self.model.fit(self.train_x, self.train_y, batch_size=len(self.train_x), epochs=9000, shuffle=False, validation_data=(self.test_x, self.test_y))
+		#history=self.model.fit(self.train_x, self.train_y, batch_size=1, epochs=9000, shuffle=False, validation_data=(self.test_x, self.test_y))
 		#history=self.model.fit(np.reshape(self.train_all, (len(self.train_all), -1, 1)), self.train_y_close, batch_size=50, epochs=10, validation_split=0.3)
 
 		self.model.save_weights(self.weights_file)
+		#print self.model.evaluate(self.test_x, self.test_y, batch_size=1, verbose=0)[1]*100
 
 		#plt.plot(history.history['loss'], label='loss')
 		#plt.plot(history.history['val_loss'], label='val_loss')
@@ -148,10 +154,13 @@ class HjLstm:
 		if x is None:
 			self.predict_y=self.model.predict_classes(self.train_x)
 		else:
-		
-			x_digitize=np.digitize(x, self.bins)
-			x_1hot=self.eye[x_digitize]
-			predict_y=self.model.predict_classes(x_1hot.reshape(1, -1, self.dims))[0]
+			predict_y=self.model.predict_classes(x.reshape(1, x.shape[0], x.shape[1]))[0]
+			h1=self.model.predict(x.reshape(1, x.shape[0], x.shape[1]))[0]
+			h2=self.model.predict(self.train_x)
+			h3=self.model.predict_classes(self.train_x)
+			h4=self.model.predict(self.test_x)
+			h5=self.model.predict_classes(self.test_x)
+			pdb.set_trace()
 			return self.bins[predict_y-1] if predict_y>0 else None, self.bins[predict_y]
 
 	def plot(self):
@@ -206,7 +215,7 @@ def fortune(lstms, data):
 
 def advise(lstm):
 	lstm.load_data(False)
-	data=lstm.data_price_change[-lstm.pre_day:]
+	data=lstm.data_array[-lstm.pre_day:]
 	data_last=lstm.data_price_change[-1]
 	predict=lstm.predict(data)
 	logger.info('\ndata_last:%s\n'\
@@ -263,7 +272,7 @@ if __name__ == '__main__':
 		
 	#nn=HjLstm(pre_day, dict_day, stock_id, 'dnn_10_100_10_1')
 	nn=HjLstm(stock_id)
-	#nn.load_file(update=False)
+	#nn.load_file()
 	nn.load_data(False)
 	nn.train_model()
 	#nn.predict()
