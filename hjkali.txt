@@ -1,0 +1,221 @@
+# dmidecode 3.0
+Getting SMBIOS data from sysfs.
+SMBIOS 2.7 present.
+19 structures occupying 890 bytes.
+Table at 0x000E6840.
+
+Handle 0x0000, DMI type 0, 24 bytes
+BIOS Information
+	Vendor: INSYDE
+	Version: 1.00
+	Release Date: 04/01/2011
+	Address: 0xF0000
+	Runtime Size: 64 kB
+	ROM Size: 4096 kB
+	Characteristics:
+		PCI is supported
+		PNP is supported
+		BIOS is upgradeable
+		BIOS shadowing is allowed
+		Boot from CD is supported
+		Selectable boot is supported
+		EDD is supported
+		8042 keyboard services are supported (int 9h)
+		CGA/mono video services are supported (int 10h)
+		ACPI is supported
+		USB legacy is supported
+		AGP is supported
+		Smart battery is supported
+		BIOS boot specification is supported
+		Function key-initiated network boot is supported
+		Targeted content distribution is supported
+	BIOS Revision: 1.0
+	Firmware Revision: 1.0
+
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+	Manufacturer: TOSHIBA
+	Product Name: Satellite C600
+	Version: PSC2WQ-00J001
+	Serial Number: 5B103176Q
+	UUID: 00AFC809-AE7A-E011-A90E-00266CBD198A
+	Wake-up Type: Power Switch
+	SKU Number: PSC2WQ-00J001
+	Family:  
+
+Handle 0x0002, DMI type 2, 16 bytes
+Base Board Information
+	Manufacturer: TOSHIBA
+	Product Name: Portable PC
+	Version: Base Board Version
+	Serial Number: Base Board Serial Number
+	Asset Tag: Not Specified
+	Features: None
+	Location In Chassis: Not Specified
+	Chassis Handle: 0x0003
+	Type: <OUT OF SPEC>
+	Contained Object Handles: 0
+
+Handle 0x0003, DMI type 3, 23 bytes
+Chassis Information
+	Manufacturer: OEM Chassis Manufacturer
+	Type: Notebook
+	Lock: Not Present
+	Version: OEM Chassis Version
+	Serial Number: OEM Chassis Serial Number
+	Asset Tag: No Asset Tag
+	Boot-up State: Safe
+	Power Supply State: Safe
+	Thermal State: Safe
+	Security Status: None
+	OEM Information: 0x00000000
+	Height: Unspecified
+	Number Of Power Cords: 1
+	Contained Elements: 0
+	SKU Number: Not Specified
+
+Handle 0x0004, DMI type 11, 5 bytes
+OEM Strings
+	String 1: PSC2WQ-00J001,S3A8980DW03
+	String 2: VgXc5JKm26HlP
+	String 3: +V7+xlAc-pae3
+	String 4: +lKUKryKdHo+V
+	String 5:                                 
+
+Handle 0x0005, DMI type 12, 5 bytes
+System Configuration Options
+	Option 1: NVR:00707902
+	Option 2: DSN: 41IZB1BWB          
+	Option 3: DSN:M471B5773DH0-CH9  45117845 
+	Option 4: DSN:7A536C66
+
+Handle 0x0006, DMI type 21, 7 bytes
+Built-in Pointing Device
+	Type: Touch Pad
+	Interface: PS/2
+	Buttons: 4
+
+Handle 0x0007, DMI type 32, 20 bytes
+System Boot Information
+	Status: No errors detected
+
+Handle 0x0008, DMI type 16, 15 bytes
+Physical Memory Array
+	Location: System Board Or Motherboard
+	Use: System Memory
+	Error Correction Type: None
+	Maximum Capacity: 16 GB
+	Error Information Handle: 0x000F
+	Number Of Devices: 2
+
+Handle 0x0009, DMI type 17, 34 bytes
+Memory Device
+	Array Handle: 0x0008
+	Error Information Handle: 0x000B
+	Total Width: 64 bits
+	Data Width: 64 bits
+	Size: 2048 MB
+	Form Factor: SODIMM
+	Set: None
+	Locator: DIMM0
+	Bank Locator: BANK 0
+	Type: DDR3
+	Type Detail: Synchronous
+	Speed: 1333 MHz
+	Manufacturer: Samsung
+	Serial Number: 45117845
+	Asset Tag: 0123456789
+	Part Number: M471B5773DH0-CH9  
+	Rank: Unknown
+	Configured Clock Speed: 1333 MHz
+
+Handle 0x000A, DMI type 6, 11 bytes
+Memory Module Information
+
+Handle 0x000B, DMI type 18, 23 bytes
+32-bit Memory Error Information
+	Type: OK
+	Granularity: Unknown
+	Operation: Unknown
+	Vendor Syndrome: Unknown
+	Memory Array Address: Unknown
+	Device Address: Unknown
+	Resolution: Unknown
+
+Handle 0x000C, DMI type 20, 19 bytes
+Memory Device Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0007FFFFFFF
+	Range Size: 2 GB
+	Physical Device Handle: 0x0009
+	Memory Array Mapped Address Handle: 0x0010
+	Partition Row Position: Unknown
+	Interleave Position: 1
+	Interleaved Data Depth: 1
+
+Handle 0x000D, DMI type 17, 34 bytes
+Memory Device
+	Array Handle: 0x0008
+	Error Information Handle: Not Provided
+	Total Width: Unknown
+	Data Width: Unknown
+	Size: No Module Installed
+	Form Factor: DIMM
+	Set: None
+	Locator: DIMM1
+	Bank Locator: BANK 2
+	Type: Unknown
+	Type Detail: None
+	Speed: Unknown
+	Manufacturer: Not Specified
+	Serial Number: Not Specified
+	Asset Tag: 0123456789
+	Part Number: Not Specified
+	Rank: Unknown
+	Configured Clock Speed: Unknown
+
+Handle 0x000E, DMI type 6, 11 bytes
+Memory Module Information
+
+Handle 0x000F, DMI type 18, 23 bytes
+32-bit Memory Error Information
+	Type: OK
+	Granularity: Unknown
+	Operation: Unknown
+	Vendor Syndrome: Unknown
+	Memory Array Address: Unknown
+	Device Address: Unknown
+	Resolution: Unknown
+
+Handle 0x0010, DMI type 19, 15 bytes
+Memory Array Mapped Address
+	Starting Address: 0x00000000000
+	Ending Address: 0x0007FFFFFFF
+	Range Size: 2 GB
+	Physical Array Handle: 0x0008
+	Partition Width: 2
+
+Handle 0x0011, DMI type 5, 20 bytes
+Memory Controller Information
+	Error Detecting Method: None
+	Error Correcting Capabilities:
+		Unknown
+		None
+	Supported Interleave: One-way Interleave
+	Current Interleave: One-way Interleave
+	Maximum Memory Module Size: 8192 MB
+	Maximum Total Memory Size: 16384 MB
+	Supported Speeds:
+		Other
+	Supported Memory Types:
+		Other
+	Memory Module Voltage: Unknown
+	Associated Memory Slots: 2
+		0x000A
+		0x000E
+	Enabled Error Correcting Capabilities:
+		None
+
+Handle 0x0012, DMI type 127, 4 bytes
+End Of Table
+
